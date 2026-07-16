@@ -1,0 +1,128 @@
+<div style="width: 800px; height: 600px; font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; background-color: #f9fafb; color: #111827; overflow: hidden; border: 1px solid #e5e7eb;">
+  <!-- Sidebar -->
+  <div style="width: 220px; background-color: #1f2937; color: #f3f4f6; display: flex; flex-direction: column; padding: 16px;">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 24px; padding: 0 8px;">
+      <div style="width: 24px; height: 24px; background-color: #6366f1; border-radius: 4px;"></div>
+      <span style="font-weight: 700; font-size: 14px;">n8n Control Plane</span>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <label style="font-size: 10px; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.05em; margin-bottom: 8px; display: block;">Organization</label>
+      <div style="background-color: #374151; padding: 8px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+        <span style="font-size: 13px;">Acme Global</span>
+        <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+      </div>
+    </div>
+
+    <nav style="flex-grow: 1;">
+      <div style="background-color: #374151; color: #fff; padding: 8px 12px; border-radius: 6px; margin-bottom: 4px; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+        <span style="opacity: 0.8;">📊</span> Dashboard
+      </div>
+      <div style="padding: 8px 12px; border-radius: 6px; margin-bottom: 4px; font-size: 13px; display: flex; align-items: center; gap: 10px; color: #9ca3af;">
+        <span style="opacity: 0.8;">⚡</span> Workflows
+      </div>
+      <div style="padding: 8px 12px; border-radius: 6px; margin-bottom: 4px; font-size: 13px; display: flex; align-items: center; gap: 10px; color: #9ca3af;">
+        <span style="opacity: 0.8;">📜</span> Audit Trail
+      </div>
+      <div style="padding: 8px 12px; border-radius: 6px; margin-bottom: 4px; font-size: 13px; display: flex; align-items: center; gap: 10px; color: #9ca3af;">
+        <span style="opacity: 0.8;">🔑</span> Key Management
+      </div>
+    </nav>
+
+    <div style="padding-top: 16px; border-top: 1px solid #374151;">
+      <div style="padding: 8px 12px; font-size: 13px; display: flex; align-items: center; gap: 10px; color: #9ca3af;">
+        <span style="opacity: 0.8;">⚙️</span> Settings
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div style="flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto;">
+    <!-- Header -->
+    <header style="height: 56px; background-color: #fff; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; padding: 0 24px;">
+      <h1 style="font-size: 18px; font-weight: 600;">Dashboard</h1>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <button style="background-color: #6366f1; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;">+ Connect Instance</button>
+        <div style="width: 32px; height: 32px; background-color: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">JD</div>
+      </div>
+    </header>
+
+    <main style="padding: 24px;">
+      <!-- Metrics Grid -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+        <div style="background-color: #fff; padding: 16px; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Connected Instances</div>
+          <div style="font-size: 20px; font-weight: 700;">3</div>
+        </div>
+        <div style="background-color: #fff; padding: 16px; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Total Workflows</div>
+          <div style="font-size: 20px; font-weight: 700;">42</div>
+        </div>
+        <div style="background-color: #fff; padding: 16px; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">BYOK Status</div>
+          <div style="font-size: 14px; font-weight: 600; color: #059669; display: flex; align-items: center; gap: 4px; margin-top: 6px;">
+            <div style="width: 8px; height: 8px; background-color: #10b981; border-radius: 50%;"></div> Active
+          </div>
+        </div>
+        <div style="background-color: #fff; padding: 16px; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">AI Ops (24h)</div>
+          <div style="font-size: 20px; font-weight: 700;">128</div>
+        </div>
+      </div>
+
+      <!-- Recent Workflows Section -->
+      <div style="background-color: #fff; border-radius: 8px; border: 1px solid #e5e7eb;">
+        <div style="padding: 16px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between;">
+          <h2 style="font-size: 15px; font-weight: 600;">Recent Workflows</h2>
+          <a href="#" style="color: #6366f1; font-size: 12px; text-decoration: none;">View All</a>
+        </div>
+        <div style="padding: 0;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <tr style="border-bottom: 1px solid #f3f4f6; text-align: left;">
+              <th style="padding: 12px 16px; color: #6b7280; font-weight: 500;">Name</th>
+              <th style="padding: 12px 16px; color: #6b7280; font-weight: 500;">Instance</th>
+              <th style="padding: 12px 16px; color: #6b7280; font-weight: 500;">Status</th>
+              <th style="padding: 12px 16px; color: #6b7280; font-weight: 500;">Last Edited</th>
+            </tr>
+            <tr style="border-bottom: 1px solid #f3f4f6;">
+              <td style="padding: 12px 16px; font-weight: 500;">Customer Support Router</td>
+              <td style="padding: 12px 16px; color: #4b5563;">Prod-Cluster-01</td>
+              <td style="padding: 12px 16px;"><span style="background-color: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Live</span></td>
+              <td style="padding: 12px 16px; color: #6b7280;">2 mins ago</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f3f4f6;">
+              <td style="padding: 12px 16px; font-weight: 500;">Inbound Lead Enrichment</td>
+              <td style="padding: 12px 16px; color: #4b5563;">Marketing-n8n</td>
+              <td style="padding: 12px 16px;"><span style="background-color: #fef9c3; color: #854d0e; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Draft</span></td>
+              <td style="padding: 12px 16px; color: #6b7280;">1 hour ago</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f3f4f6;">
+              <td style="padding: 12px 16px; font-weight: 500;">Slack-to-Jira Sync</td>
+              <td style="padding: 12px 16px; color: #4b5563;">Prod-Cluster-01</td>
+              <td style="padding: 12px 16px;"><span style="background-color: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Live</span></td>
+              <td style="padding: 12px 16px; color: #6b7280;">Yesterday</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div style="border: 1px dashed #d1d5db; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+          <div style="background-color: #eef2ff; color: #6366f1; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;">✨</div>
+          <div>
+            <div style="font-size: 14px; font-weight: 600;">New AI Workflow</div>
+            <div style="font-size: 12px; color: #6b7280;">Generate from a prompt</div>
+          </div>
+        </div>
+        <div style="border: 1px dashed #d1d5db; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+          <div style="background-color: #f0fdf4; color: #16a34a; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;">🔑</div>
+          <div>
+            <div style="font-size: 14px; font-weight: 600;">Rotate BYOK Keys</div>
+            <div style="font-size: 12px; color: #6b7280;">Manage security credentials</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
