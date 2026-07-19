@@ -5,7 +5,7 @@ compatibility_flags = [ "nodejs_compat" ]
 
 [vars]
 SUPABASE_URL = "https://uecxidvmfrqlfzfwnjil.supabase.co"
-ALLOWED_ORIGINS = "https://nodepilot.io,http://localhost:3000"
+ALLOWED_ORIGINS = "https://nodepilot.io,http://localhost:3000,https://nodepilot.pages.dev"
 OMNIROUTE_API_URL = "http://localhost:8080/v1/chat/completions"
 RAZORPAY_KEY_ID = "rzp_live_TEfso5ER7rHM8p"
 
