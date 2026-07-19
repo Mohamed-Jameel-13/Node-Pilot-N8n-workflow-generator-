@@ -53,7 +53,8 @@ export default function BillingPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const res = await fetch("http://localhost:3001/api/billing/subscription-status", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const res = await fetch(`${apiUrl}/api/billing/subscription-status`, {
         headers: { "Authorization": `Bearer ${session.access_token}` }
       });
       const data = await res.json();
@@ -83,7 +84,8 @@ export default function BillingPage() {
         ? (isYearly ? 299000 : 29900) 
         : (isYearly ? 3000 : 300);
 
-      const subRes = await fetch("http://localhost:3001/api/billing/create-subscription", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const subRes = await fetch(`${apiUrl}/api/billing/create-subscription`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -109,7 +111,8 @@ export default function BillingPage() {
         description: `${isYearly ? 'Yearly' : 'Monthly'} Pro Plan Subscription`,
         handler: async function (response: any) {
           // 3. Verify payment signature on our backend
-          const verifyRes = await fetch("http://localhost:3001/api/billing/verify-subscription", {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+          const verifyRes = await fetch(`${apiUrl}/api/billing/verify-subscription`, {
             method: "POST",
             headers: { 
               "Content-Type": "application/json",
@@ -158,7 +161,8 @@ export default function BillingPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      const res = await fetch("http://localhost:3001/api/billing/cancel-subscription", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const res = await fetch(`${apiUrl}/api/billing/cancel-subscription`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${session.access_token}` }
       });
