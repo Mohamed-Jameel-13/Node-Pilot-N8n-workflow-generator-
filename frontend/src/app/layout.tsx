@@ -3,6 +3,7 @@ import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
+export const runtime = "edge";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
