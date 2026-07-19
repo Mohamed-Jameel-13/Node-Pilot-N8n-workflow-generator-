@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, use, useEffect, useRef, useCallback } from "react";
 import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, applyNodeChanges, NodeChange } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";

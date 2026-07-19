@@ -46,5 +46,11 @@
     "wrangler": "3.90.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@cloudflare/next-on-pages": {
+      "wrangler": "3.90.0",
+      "@cloudflare/workers-types": "4.20241106.0"
+    }
   }
 }
