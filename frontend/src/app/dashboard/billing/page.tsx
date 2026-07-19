@@ -53,7 +53,7 @@ export default function BillingPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://nodepilot-backend.nodepilot-app.workers.dev";
       const res = await fetch(`${apiUrl}/api/billing/subscription-status`, {
         headers: { "Authorization": `Bearer ${session.access_token}` }
       });
@@ -84,7 +84,7 @@ export default function BillingPage() {
         ? (isYearly ? 299000 : 29900) 
         : (isYearly ? 3000 : 300);
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://nodepilot-backend.nodepilot-app.workers.dev";
       const subRes = await fetch(`${apiUrl}/api/billing/create-subscription`, {
         method: "POST",
         headers: { 
@@ -111,7 +111,7 @@ export default function BillingPage() {
         description: `${isYearly ? 'Yearly' : 'Monthly'} Pro Plan Subscription`,
         handler: async function (response: any) {
           // 3. Verify payment signature on our backend
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://nodepilot-backend.nodepilot-app.workers.dev";
           const verifyRes = await fetch(`${apiUrl}/api/billing/verify-subscription`, {
             method: "POST",
             headers: { 
@@ -161,7 +161,7 @@ export default function BillingPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}`;
       const res = await fetch(`${apiUrl}/api/billing/cancel-subscription`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${session.access_token}` }

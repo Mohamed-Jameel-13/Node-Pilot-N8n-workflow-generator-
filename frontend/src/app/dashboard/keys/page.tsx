@@ -51,7 +51,7 @@ export default function ApiKeysAndSettingsPage() {
         
         // Check subscription status
         try {
-          const subRes = await fetch("http://localhost:3001/api/billing/subscription-status", {
+          const subRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}/api/billing/subscription-status`, {
             headers: { "Authorization": `Bearer ${session.access_token}` }
           });
           if (subRes.ok) {
@@ -64,7 +64,7 @@ export default function ApiKeysAndSettingsPage() {
           setIsLoadingStatus(false);
         }
         
-        const res = await fetch("http://localhost:3001/api/user/llm-config", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}/api/user/llm-config`, {
           headers: { "Authorization": `Bearer ${session.access_token}` }
         });
         
@@ -108,7 +108,7 @@ export default function ApiKeysAndSettingsPage() {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      await fetch("http://localhost:3001/api/workspaces/default/config", {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}/api/workspaces/default/config`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -157,7 +157,7 @@ export default function ApiKeysAndSettingsPage() {
     setMessage("");
     
     try {
-      const res = await fetch("http://localhost:3001/api/llm/test", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}/api/llm/test`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ baseUrl: provider.baseUrl, apiKey: provider.apiKey })
@@ -198,7 +198,7 @@ export default function ApiKeysAndSettingsPage() {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      const res = await fetch("http://localhost:3001/api/user/llm-config", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}/api/user/llm-config`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
