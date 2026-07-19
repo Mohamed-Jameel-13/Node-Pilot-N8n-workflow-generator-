@@ -6,7 +6,7 @@
   ],
   "scripts": {
     "build": "node scripts/build-frontend-for-pages.mjs",
-    "pages:build": "rm -rf node_modules package-lock.json frontend/node_modules && cd frontend && npm install --legacy-peer-deps && npx @cloudflare/next-on-pages@1.13.16"
+    "pages:build": "rm -rf node_modules package-lock.json frontend/node_modules frontend/.next && cd frontend && npm install --legacy-peer-deps && npx @cloudflare/next-on-pages@1.13.16"
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "1.13.16",
