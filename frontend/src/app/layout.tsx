@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
+
+export const dynamic = "force-dynamic";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -73,8 +74,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { PostHogProvider } from "@/components/posthog-provider";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -87,16 +86,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-mono">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <PostHogProvider>
-            {children}
-          </PostHogProvider>
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   );

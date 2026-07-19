@@ -2,17 +2,28 @@
 
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
-import { usePostHog } from "@posthog/react";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const posthog = usePostHog();
+  const [theme, setTheme] = React.useState<"light" | "dark">("light");
+
+  React.useEffect(() => {
+    const storedTheme = window.localStorage.getItem("theme");
+    const preferredTheme =
+      storedTheme === "light" || storedTheme === "dark"
+        ? storedTheme
+        : window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+    setTheme(preferredTheme);
+    document.documentElement.classList.toggle("dark", preferredTheme === "dark");
+  }, []);
 
   const handleToggle = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-    posthog.capture("theme_toggled", { theme: newTheme });
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
+    window.localStorage.setItem("theme", newTheme);
   };
 
   return (

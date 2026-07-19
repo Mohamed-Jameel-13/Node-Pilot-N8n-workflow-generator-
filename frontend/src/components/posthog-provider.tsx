@@ -1,6 +1,6 @@
 'use client'
 
-import { PostHogProvider as PHProvider } from '@posthog/react'
+import { PostHogProvider as PHProvider } from 'posthog-js/react'
 
 const options = {
   api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
