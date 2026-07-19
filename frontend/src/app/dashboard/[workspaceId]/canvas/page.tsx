@@ -1101,7 +1101,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background text-foreground">
-      <header className="h-14 border-b border-border flex items-center justify-between px-4">
+      <header className="h-14 border-b border-border flex items-center justify-between pl-14 pr-4 md:px-4">
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -1119,12 +1119,12 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
             type="text" 
             value={workflowName} 
             onChange={(e) => setWorkflowName(e.target.value)}
-            className="bg-background border border-border/50 rounded px-3 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary w-64"
+            className="bg-background border border-border/50 rounded px-3 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary w-24 sm:w-48 md:w-64"
             placeholder="Workflow Name"
           />
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
+          <div className="hidden sm:flex items-center gap-1 border-r border-border pr-2 mr-2">
             <button
               onClick={undo}
               disabled={history.index <= 0}
@@ -1158,16 +1158,23 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                 }).catch(() => {});
               }
             }}
-            className="text-sm font-medium text-secondary-foreground bg-secondary px-4 py-1.5 rounded-md hover:bg-secondary/80 transition-colors"
+            className="hidden sm:block text-sm font-medium text-secondary-foreground bg-secondary px-4 py-1.5 rounded-md hover:bg-secondary/80 transition-colors"
           >
             Clear Canvas
           </button>
           <button 
             onClick={handleDeploy}
             disabled={isDeploying}
-            className="px-4 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm font-medium shadow-sm"
+            className="px-2.5 py-1.5 md:px-4 md:py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed rounded text-xs md:text-sm font-medium shadow-sm transition-all"
           >
-            {isDeploying ? "Deploying..." : "Deploy to n8n"}
+            {isDeploying ? (
+              "Deploying..."
+            ) : (
+              <>
+                <span className="sm:hidden">Deploy</span>
+                <span className="hidden sm:inline">Deploy to n8n</span>
+              </>
+            )}
           </button>
           {/* WorkflowCompiler v2 Score Badge */}
           {isCompiling ? (
@@ -1178,7 +1185,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
           ) : compilerScore ? (
             <div
               title={compilerScore.warnings.length > 0 ? `Warnings:\n${compilerScore.warnings.join('\n')}` : 'Workflow passed all compiler checks'}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono border cursor-help transition-all ${
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono border cursor-help transition-all ${
                 compilerScore.score >= 95
                   ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30 dark:text-emerald-400'
                   : compilerScore.score >= 70
@@ -1203,7 +1210,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
       
       <div className="flex-1 flex overflow-hidden">
         {/* React Flow Canvas */}
-        <div className="hidden md:block flex-1 relative bg-muted/5">
+        <div className={`${isSidebarOpen ? 'hidden md:block' : 'block'} flex-1 relative bg-muted/5`}>
           <ReactFlow 
             nodes={nodes} 
             edges={edges} 
@@ -1390,7 +1397,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
         </div>
 {/* Chat History Sidebar */}
         {isChatHistoryOpen && (
-          <div className="w-64 border-l border-border flex flex-col bg-sidebar">
+          <div className="fixed inset-y-0 right-0 z-50 w-64 border-l border-border flex flex-col bg-sidebar shadow-2xl md:relative md:top-auto md:bottom-auto md:right-auto md:z-0 md:shadow-none">
             <div className="p-3 border-b border-border flex items-center justify-between">
               <h3 className="font-semibold text-sm text-sidebar-foreground">Chat History</h3>
               <button

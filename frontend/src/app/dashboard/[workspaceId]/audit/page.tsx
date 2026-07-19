@@ -10,7 +10,7 @@ export default function AuditTrailPage({ params }: { params: Promise<{ workspace
   const { workspaceId } = use(params);
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto bg-background text-foreground">
+    <div className="flex-1 p-4 pt-16 md:p-8 overflow-y-auto bg-background text-foreground">
       <div className="max-w-5xl mx-auto space-y-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Audit Trail</h1>

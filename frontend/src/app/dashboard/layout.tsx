@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import { LayoutDashboard, Settings, CreditCard, Network, PenTool, Settings2, ArrowLeft, PanelLeftClose, PanelLeftOpen, History, Key, LogOut } from "lucide-react";
@@ -13,6 +13,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const params = useParams();
   const workspaceId = params?.workspaceId as string;
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
+  }, []);
 
   const navItems = [
     { name: "Canvas", href: `/dashboard/default/canvas`, icon: PenTool },
@@ -98,15 +104,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 w-full overflow-hidden bg-background relative">
         {/* Mobile menu toggle (visible only when sidebar is hidden on mobile) */}
+        {children}
         {!isSidebarOpen && (
           <button 
             onClick={() => setIsSidebarOpen(true)}
-            className="md:hidden absolute top-4 left-4 z-30 p-2 bg-background border border-border rounded-md shadow-sm"
+            className="md:hidden absolute top-3 left-3 z-[45] p-2 bg-background border border-border rounded-md shadow-sm text-foreground hover:bg-muted transition-colors flex items-center justify-center"
+            title="Open Sidebar"
           >
             <PanelLeftOpen className="w-4 h-4" />
           </button>
         )}
-        {children}
       </main>
     </div>
   );

@@ -224,7 +224,7 @@ export default function ApiKeysAndSettingsPage() {
 
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto bg-background text-foreground h-screen">
+    <div className="flex-1 p-4 pt-16 md:p-8 overflow-y-auto bg-background text-foreground h-screen">
       <div className="max-w-4xl mx-auto space-y-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">API & Configuration Settings</h1>

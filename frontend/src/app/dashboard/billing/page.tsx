@@ -188,7 +188,7 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto bg-background text-foreground">
+    <div className="flex-1 p-4 pt-16 md:p-8 overflow-y-auto bg-background text-foreground">
       <div className="max-w-3xl mx-auto space-y-8">
         <h1 className="text-3xl font-bold tracking-tight">Billing & Subscription</h1>
         
