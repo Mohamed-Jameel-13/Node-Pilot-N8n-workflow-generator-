@@ -81,7 +81,7 @@ export default function BillingPage() {
       // 1. Request a new subscription from our backend
       const planType = isYearly ? "yearly" : "monthly";
       const finalAmount = currency === "INR" 
-        ? (isYearly ? 299000 : 29900) 
+        ? (isYearly ? 100 : 100) 
         : (isYearly ? 3000 : 300);
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://nodepilot-backend.nodepilot-app.workers.dev";
@@ -180,8 +180,8 @@ export default function BillingPage() {
     }
   };
 
-  const monthlyPrice = currency === "INR" ? "₹299" : "$3";
-  const yearlyPrice = currency === "INR" ? "₹2990" : "$30";
+  const monthlyPrice = currency === "INR" ? "₹1" : "$3";
+  const yearlyPrice = currency === "INR" ? "₹1" : "$30";
 
   if (isLoading) {
     return <div className="flex-1 p-8 flex items-center justify-center text-muted-foreground">Loading billing information...</div>;

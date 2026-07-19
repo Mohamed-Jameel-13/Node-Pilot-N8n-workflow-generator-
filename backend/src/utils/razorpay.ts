@@ -12,14 +12,17 @@ function getRazorpayAuth(): string {
 const BASE_URL = 'https://api.razorpay.com/v1';
 
 async function rzpFetch(path: string, method = 'GET', body?: object) {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const options: RequestInit = {
     method,
     headers: {
       'Authorization': getRazorpayAuth(),
       'Content-Type': 'application/json',
     },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  };
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
+  const res = await fetch(`${BASE_URL}${path}`, options);
 
   const data = await res.json() as any;
   if (!res.ok) {

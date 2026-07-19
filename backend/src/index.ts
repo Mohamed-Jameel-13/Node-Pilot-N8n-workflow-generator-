@@ -1,5 +1,6 @@
 // Dotenv removed for Cloudflare Worker compatibility ('fs' module unsupported)
 // @hono/node-server imported lazily below (Node.js only — Cloudflare Workers don't support it)
+import crypto from 'node:crypto'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { encrypt, decrypt } from './utils/encryption.js'
@@ -1030,7 +1031,7 @@ app.post('/api/billing/create-subscription', async (c) => {
     try {
       // Find an existing plan dynamically to avoid .env caching/typo issues
       const plans = await rzp.plans.all();
-      const defaultAmount = plan === 'yearly' ? 500000 : 50000;
+      const defaultAmount = plan === 'yearly' ? 100 : 100;
       const finalAmount = amount || defaultAmount;
       const expectedName = `NodePilot Pro ${plan === 'yearly' ? 'Yearly' : 'Monthly'} (${currency} ${finalAmount})`;
       const existingPlan = plans.items.find((p: any) => p.item.name === expectedName && p.item.currency === currency && p.item.amount === finalAmount);
