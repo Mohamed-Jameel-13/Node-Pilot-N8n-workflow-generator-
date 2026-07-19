@@ -1,85 +1,105 @@
--- organizations table
-CREATE TABLE organizations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  razorpay_customer_id TEXT,
-  subscription_status TEXT DEFAULT 'inactive',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+-- Enable UUID extension
+create extension if not exists "uuid-ossp";
+
+-- ==========================================
+-- PROFILES (Users)
+-- ==========================================
+create table if not exists public.profiles (
+  id uuid references auth.users on delete cascade not null primary key,
+  email text unique not null,
+  full_name text,
+  avatar_url text,
+  -- BYOK SaaS Control Plane Fields
+  llm_base_url text,
+  llm_model text,
+  encrypted_llm_api_key text,
+  -- Subscription Fields (Razorpay)
+  razorpay_customer_id text,
+  subscription_id text,
+  subscription_status text, -- 'active', 'past_due', 'canceled', etc.
+  subscription_plan text, -- 'monthly', 'yearly'
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- workspaces table
-CREATE TABLE workspaces (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  n8n_endpoint_url TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+-- RLS for Profiles
+alter table public.profiles enable row level security;
+create policy "Users can view own profile." on profiles for select using (auth.uid() = id);
+create policy "Users can update own profile." on profiles for update using (auth.uid() = id);
+
+-- Trigger to automatically create profile on signup
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, email, full_name)
+  values (new.id, new.email, new.raw_user_meta_data->>'full_name');
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger for auth.users
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+
+-- ==========================================
+-- API KEYS
+-- ==========================================
+create table if not exists public.api_keys (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  name text not null,
+  key_prefix text not null,
+  hashed_key text not null,
+  last_used_at timestamp with time zone,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- user_profiles table
-CREATE TABLE user_profiles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-  email TEXT UNIQUE NOT NULL,
-  role TEXT NOT NULL,
-  encryption_key_versions JSONB NOT NULL DEFAULT '[]',
-  llm_base_url TEXT,
-  llm_model TEXT,
-  encrypted_llm_api_key TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+-- RLS for API Keys
+alter table public.api_keys enable row level security;
+create policy "Users can view own api keys." on api_keys for select using (auth.uid() = user_id);
+create policy "Users can insert own api keys." on api_keys for insert with check (auth.uid() = user_id);
+create policy "Users can delete own api keys." on api_keys for delete using (auth.uid() = user_id);
+
+
+-- ==========================================
+-- AUDIT LOGS
+-- ==========================================
+create table if not exists public.audit_logs (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.profiles(id) on delete set null,
+  action text not null,
+  details text,
+  ip_address text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- workflow_audit_trail table
-CREATE TABLE workflow_audit_trail (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
-  snapshot_timestamp TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  raw_n8n_json JSONB NOT NULL,
-  canvas_state JSONB DEFAULT '{}',
-  change_summary TEXT,
-  CONSTRAINT audit_retention CHECK (snapshot_timestamp > now() - INTERVAL '36 months')
+-- RLS for Audit Logs
+alter table public.audit_logs enable row level security;
+create policy "Users can view own audit logs." on audit_logs for select using (auth.uid() = user_id);
+create policy "System can insert audit logs." on audit_logs for insert with check (auth.uid() = user_id);
+
+
+-- ==========================================
+-- SAVED WORKFLOWS / CHATS
+-- ==========================================
+create table if not exists public.workflows (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  name text not null default 'Untitled Workflow',
+  n8n_id text, -- ID of the workflow in n8n
+  nodes jsonb default '[]'::jsonb not null,
+  edges jsonb default '[]'::jsonb not null,
+  messages jsonb default '[]'::jsonb not null, -- Chat history related to this workflow
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Enable Row Level Security
-ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE workflow_audit_trail ENABLE ROW LEVEL SECURITY;
-
--- Policies for organizations
-CREATE POLICY "Users can view their own organization"
-  ON organizations
-  FOR SELECT
-  USING (id IN (SELECT organization_id FROM user_profiles WHERE email = auth.jwt()->>'email'));
-
--- Policies for workspaces
-CREATE POLICY "Users can view workspaces in their organization"
-  ON workspaces
-  FOR SELECT
-  USING (organization_id IN (SELECT organization_id FROM user_profiles WHERE email = auth.jwt()->>'email'));
-
--- Policies for user_profiles
-CREATE POLICY "Users can view their own profile"
-  ON user_profiles
-  FOR SELECT
-  USING (email = auth.jwt()->>'email');
-
--- Policies for workflow_audit_trail
-CREATE POLICY "Users can view audit trails for their workspaces"
-  ON workflow_audit_trail
-  FOR SELECT
-  USING (workspace_id IN (SELECT id FROM workspaces WHERE organization_id IN (SELECT organization_id FROM user_profiles WHERE email = auth.jwt()->>'email')));
-
--- workspace_chats table
-CREATE TABLE workspace_chats (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE UNIQUE,
-  messages JSONB NOT NULL DEFAULT '[]',
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
-ALTER TABLE workspace_chats ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can manage chats for their workspaces"
-  ON workspace_chats
-  USING (workspace_id IN (SELECT id FROM workspaces WHERE organization_id IN (SELECT organization_id FROM user_profiles WHERE email = auth.jwt()->>'email')));
+-- RLS for Workflows
+alter table public.workflows enable row level security;
+create policy "Users can view own workflows." on workflows for select using (auth.uid() = user_id);
+create policy "Users can insert own workflows." on workflows for insert with check (auth.uid() = user_id);
+create policy "Users can update own workflows." on workflows for update using (auth.uid() = user_id);
+create policy "Users can delete own workflows." on workflows for delete using (auth.uid() = user_id);

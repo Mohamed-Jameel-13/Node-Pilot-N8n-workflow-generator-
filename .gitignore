@@ -1,0 +1,11 @@
+**/node_modules/
+**/.next/
+**/.vercel/
+**/.open-next/
+**/dist/
+**/build/
+**/*.log
+**/*.tsbuildinfo
+.freebuff/
+documentation.zip
+backend/.env

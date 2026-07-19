@@ -1,0 +1,15 @@
+name = "nodepilot-backend"
+main = "src/index.ts"
+compatibility_date = "2026-07-18"
+compatibility_flags = [ "nodejs_compat" ]
+
+[vars]
+SUPABASE_URL = "https://uecxidvmfrqlfzfwnjil.supabase.co"
+ALLOWED_ORIGINS = "https://nodepilot.io,http://localhost:3000"
+OMNIROUTE_API_URL = "http://localhost:8080/v1/chat/completions"
+RAZORPAY_KEY_ID = "rzp_live_TEfso5ER7rHM8p"
+
+# Note: Secret environment variables should be set via wrangler dashboard or CLI:
+# wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+# wrangler secret put ENCRYPTION_SECRET
+# wrangler secret put RAZORPAY_KEY_SECRET

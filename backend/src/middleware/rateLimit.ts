@@ -12,16 +12,9 @@ interface RateLimitStore {
 
 const store: RateLimitStore = {};
 
-// Cleanup old entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  Object.keys(store).forEach(key => {
-    const entry = store[key];
-    if (entry && entry.resetTime < now) {
-      delete store[key];
-    }
-  });
-}, 5 * 60 * 1000);
+// Note: Global setInterval cleanup removed for Cloudflare Workers compatibility.
+// In serverless environments, isolates are short-lived, so memory leaks in `store` 
+// are automatically handled when the isolate spins down.
 
 export interface RateLimitOptions {
   windowMs: number;  // Time window in milliseconds
@@ -37,6 +30,9 @@ export function createRateLimiter(options: RateLimitOptions) {
   const { windowMs, max, message = 'Too many requests, please try again later' } = options;
 
   return async (c: any, next: any) => {
+    // RATE LIMITING TEMPORARILY DISABLED BY USER REQUEST
+    return next();
+    
     // Get identifier (prefer user ID, fallback to IP)
     const authHeader = c.req.header('Authorization');
     const token = authHeader?.split(' ')[1];
@@ -47,9 +43,10 @@ export function createRateLimiter(options: RateLimitOptions) {
     if (token) {
       try {
         const { supabaseAdmin } = await import('../utils/supabase.js');
-        const { data: { user } } = await supabaseAdmin.auth.getUser(token);
-        if (user) {
-          identifier = `user_${user.id}`;
+        const { data } = await supabaseAdmin.auth.getUser(token);
+        const userId = data?.user?.id;
+        if (userId) {
+          identifier = `user_${userId}`;
         }
       } catch (err) {
         // Fall back to IP if auth check fails
@@ -60,7 +57,7 @@ export function createRateLimiter(options: RateLimitOptions) {
     const now = Date.now();
 
     // Initialize or get existing record
-    if (!store[key] || store[key].resetTime < now) {
+    if (!store[key] || store[key]!.resetTime < now) {
       store[key] = {
         count: 1,
         resetTime: now + windowMs
@@ -69,11 +66,11 @@ export function createRateLimiter(options: RateLimitOptions) {
     }
 
     // Increment counter
-    store[key].count++;
+    store[key]!.count++;
 
     // Check if limit exceeded
-    if (store[key].count > max) {
-      const resetIn = Math.ceil((store[key].resetTime - now) / 1000);
+    if (store[key]!.count > max) {
+      const resetIn = Math.ceil((store[key]!.resetTime - now) / 1000);
       return c.json({
         error: message,
         retryAfter: resetIn
