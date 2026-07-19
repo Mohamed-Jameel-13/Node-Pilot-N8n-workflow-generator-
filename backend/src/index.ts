@@ -1023,7 +1023,7 @@ app.post('/api/billing/create-subscription', async (c) => {
     // In a real app, you would retrieve the user's razorpay_customer_id
     // or create one if it doesn't exist.
     
-    const rzp = getRazorpay();
+    const rzp = razorpay;
     
     let planId: string | undefined;
     
@@ -1152,7 +1152,7 @@ app.get('/api/billing/subscription-status', async (c) => {
       return c.json({ active: false });
     }
 
-    const rzp = getRazorpay();
+    const rzp = razorpay;
 
     try {
       const sub = await rzp.subscriptions.fetch(profile.subscription_id);
@@ -1190,7 +1190,7 @@ app.post('/api/billing/cancel-subscription', async (c) => {
       return c.json({ error: 'No active subscription found' }, 400);
     }
 
-    const rzp = getRazorpay();
+    const rzp = razorpay;
 
     try {
       await rzp.subscriptions.cancel(profile.subscription_id);
