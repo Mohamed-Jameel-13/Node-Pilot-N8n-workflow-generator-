@@ -1,6 +1,7 @@
 "use client";
 
 export const dynamic = "force-dynamic";
+export const runtime = "edge";
 
 import { useState, use, useEffect, useRef, useCallback } from "react";
 import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, applyNodeChanges, NodeChange } from "@xyflow/react";
