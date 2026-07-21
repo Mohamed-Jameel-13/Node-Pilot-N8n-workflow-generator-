@@ -4,13 +4,66 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'edge';
 
 const BASE_SYSTEM_PROMPT = `You are NodePilot, an AI-powered control plane assistant for n8n workflow automation.
-You help users inspect, debug, create, and modify n8n workflows using natural language.
+You help users inspect, debug, create, and modify n8n workflows visually on the interactive canvas.
 
-When assisting users with workflow tasks:
-1. Be helpful, clear, and direct.
-2. Analyze workflow structures, node configurations, parameter settings, and connection logic.
-3. Highlight any bugs, missing error handling, input validation gaps, or configuration issues.
-4. Provide concrete code snippets, parameters, and step-by-step fixes.`;
+CRITICAL INSTRUCTIONS:
+1. When a user asks to fix, create, optimize, or build a workflow (e.g. "Lead Generation Workflow", "fix workflow"), DO NOT JUST WRITE A TEXT EXPLANATION. 
+2. You MUST call the "generate_workflow" function to build or update the complete, fixed workflow structure directly on the visual canvas.
+3. Ensure every node has a unique ID, descriptive label (e.g. Webhook, Code, Filter, Google Sheets, Slack, OpenAI), and proper parameters.
+4. Ensure all nodes are connected sequentially in the "connections" array.`;
+
+const TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "generate_workflow",
+      description: "Generate or replace a complete n8n workflow directly on the visual canvas with specified nodes and connections.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Name of the workflow" },
+          nodes: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                label: { type: "string", description: "Node type/label, e.g. Webhook, Code, Filter, Google Sheets, Slack, OpenAI" },
+                parameters: { type: "object", description: "Node configuration parameters" }
+              },
+              required: ["id", "label"]
+            }
+          },
+          connections: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                source: { type: "string", description: "ID of source node" },
+                target: { type: "string", description: "ID of target node" }
+              },
+              required: ["source", "target"]
+            }
+          }
+        },
+        required: ["name", "nodes", "connections"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "deploy_workflow_to_n8n",
+      description: "Deploy the current canvas workflow directly to the connected n8n instance.",
+      parameters: {
+        type: "object",
+        properties: {
+          workflowName: { type: "string" }
+        }
+      }
+    }
+  }
+];
 
 export async function POST(request: Request) {
   try {
@@ -45,18 +98,14 @@ export async function POST(request: Request) {
         if (listRes.ok) {
           const listData = await listRes.json();
           const workflows: any[] = listData.data || [];
-          
-          // Get the last user message text
           const lastUserMsg = Array.isArray(messages) ? [...messages].reverse().find(m => m.role === 'user')?.content || "" : "";
           
-          // Match workflow by name or ID if mentioned in user prompt
           const matchedWf = workflows.find(w => 
             lastUserMsg.toLowerCase().includes(w.name.toLowerCase()) || 
             lastUserMsg.includes(w.id)
           );
 
           if (matchedWf) {
-            // Fetch complete workflow JSON details
             const detailRes = await fetch(`${cleanUrl}/api/v1/workflows/${matchedWf.id}`, {
               headers: {
                 'X-N8N-API-KEY': n8nConfig.apiToken,
@@ -68,10 +117,6 @@ export async function POST(request: Request) {
               const detailData = await detailRes.json();
               dynamicContext += `\n\n[Auto-Fetched n8n Workflow Context from User Instance]:\nName: ${detailData.name} (ID: ${detailData.id})\nActive Status: ${detailData.active ? "Active" : "Inactive"}\nNodes: ${JSON.stringify(detailData.nodes || [])}\nConnections: ${JSON.stringify(detailData.connections || {})}`;
             }
-          } else if (workflows.length > 0) {
-            // Summary list of available workflows
-            const summaryList = workflows.map(w => `- ${w.name} (ID: ${w.id}, Active: ${w.active})`).join('\n');
-            dynamicContext += `\n\n[Connected n8n Instance Workflows Available]:\n${summaryList}`;
           }
         }
       } catch (e) {
@@ -90,7 +135,7 @@ export async function POST(request: Request) {
     }
     const endpoint = `${url}/chat/completions`;
 
-    // Filter out previous error messages that cause repetition loops
+    // Filter out previous error messages
     const cleanedMessages = Array.isArray(messages) 
       ? messages.filter(m => !(m.role === 'assistant' && typeof m.content === 'string' && m.content.includes('Error:'))) 
       : [];
@@ -111,8 +156,10 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model: model,
         messages: fullMessages,
+        tools: TOOLS,
+        tool_choice: "auto",
         temperature: 0.7,
-        max_tokens: 2048
+        max_tokens: 2500
       })
     });
 
