@@ -3,28 +3,26 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const runtime = 'edge';
 
-const BASE_SYSTEM_PROMPT = `You are NodePilot, a universal AI Control Plane & MCP Agent for n8n workflow automation.
-You work dynamically across ANY n8n instance and ANY client workflow.
+const BASE_SYSTEM_PROMPT = `You are NodePilot, an AI-powered control plane assistant for n8n workflow automation.
 
-UNIVERSAL MCP OPERATIONAL RULES:
-1. You have direct context over the client's connected n8n instance and its workflows.
-2. When a user asks to inspect, debug, fix, create, or optimize ANY workflow (e.g. "fix lead generation workflow", "check my sales automation", "build a scraper"):
-   - Analyze the workflow's nodes, parameters, logic, and connections.
-   - You MUST call the "generate_workflow" tool function to construct or update the complete fixed workflow structure directly on the visual canvas.
-3. Ensure every generated node has a unique ID, clear label (e.g. Webhook, Code, Filter, Google Sheets, Slack, OpenAI), and proper parameters.
+OPERATIONAL RULES:
+1. Work ONLY on the specific workflow explicitly requested by the user in their prompt. Do not modify or bring in unrelated workflows.
+2. When the user asks to fix, create, optimize, or build the requested workflow:
+   - Call the "generate_workflow" function to construct or update the complete workflow structure directly on the visual canvas.
+3. Ensure every node has a unique ID, descriptive label (e.g. Webhook, Code, Filter, Google Sheets, Slack, OpenAI), and proper parameters.
 4. Ensure all nodes are connected sequentially in the "connections" array.
-5. Be concise, direct, and action-oriented.`;
+5. Be concise, direct, and focused solely on the user's requested workflow.`;
 
 const TOOLS = [
   {
     type: "function",
     function: {
       name: "generate_workflow",
-      description: "Generate or replace a complete n8n workflow directly on the visual canvas with specified nodes and connections.",
+      description: "Generate or update the explicitly requested n8n workflow directly on the visual canvas with specified nodes and connections.",
       parameters: {
         type: "object",
         properties: {
-          name: { type: "string", description: "Name of the workflow" },
+          name: { type: "string", description: "Name of the requested workflow" },
           nodes: {
             type: "array",
             items: {
@@ -86,7 +84,7 @@ export async function POST(request: Request) {
 
     let dynamicContext = "";
 
-    // Universal n8n MCP Context Injection: Fetch all workflows from user's n8n instance
+    // STRICT MATCH: Only fetch if the user explicitly asks for a specific workflow by name or ID
     if (n8nConfig && n8nConfig.endpointUrl && n8nConfig.apiToken) {
       try {
         const cleanUrl = n8nConfig.endpointUrl.endsWith('/') ? n8nConfig.endpointUrl.slice(0, -1) : n8nConfig.endpointUrl;
@@ -102,24 +100,20 @@ export async function POST(request: Request) {
           const listData = await listRes.json();
           const workflows: any[] = listData.data || [];
           
-          // Join full conversation history to search for workflow mentions
-          const userHistoryText = Array.isArray(messages) 
-            ? messages.filter(m => m.role === 'user').map(m => m.content).join(" ").toLowerCase()
+          // Get the latest user prompt text
+          const lastUserMsg = Array.isArray(messages) 
+            ? [...messages].reverse().find(m => m.role === 'user')?.content || ""
             : "";
 
-          // Provide summary of all workflows on the client's n8n instance
-          const summaryList = workflows.map(w => `- "${w.name}" (ID: ${w.id}, Status: ${w.active ? "Active" : "Inactive"}, Tags: ${JSON.stringify(w.tags || [])})`).join('\n');
-          dynamicContext += `\n\n[Connected Client n8n Instance Workflows (${workflows.length} total)]:\n${summaryList}`;
-
-          // Match any workflow mentioned anywhere in conversation history
-          const matchedWfs = workflows.filter(w => 
-            userHistoryText.includes(w.name.toLowerCase()) || 
-            userHistoryText.includes(w.id.toLowerCase()) ||
-            (w.name.toLowerCase().includes("lead") && userHistoryText.includes("lead"))
+          // Match ONLY the workflow explicitly named or referenced by ID in the prompt
+          const targetWorkflow = workflows.find(w => 
+            lastUserMsg.toLowerCase().includes(w.name.toLowerCase()) || 
+            (w.id && lastUserMsg.includes(w.id))
           );
 
-          for (const matchedWf of matchedWfs.slice(0, 3)) { // Attach up to 3 relevant workflows
-            const detailRes = await fetch(`${cleanUrl}/api/v1/workflows/${matchedWf.id}`, {
+          if (targetWorkflow) {
+            // Fetch ONLY this specific workflow's details
+            const detailRes = await fetch(`${cleanUrl}/api/v1/workflows/${targetWorkflow.id}`, {
               headers: {
                 'X-N8N-API-KEY': n8nConfig.apiToken,
                 'Accept': 'application/json',
@@ -128,16 +122,16 @@ export async function POST(request: Request) {
             });
             if (detailRes.ok) {
               const detailData = await detailRes.json();
-              dynamicContext += `\n\n[Full Target Workflow Context: "${detailData.name}"]:\nID: ${detailData.id}\nStatus: ${detailData.active ? "Active" : "Inactive"}\nNodes: ${JSON.stringify(detailData.nodes || [])}\nConnections: ${JSON.stringify(detailData.connections || {})}`;
+              dynamicContext += `\n\n[User Explicitly Requested Workflow: "${detailData.name}"]:\nID: ${detailData.id}\nStatus: ${detailData.active ? "Active" : "Inactive"}\nNodes: ${JSON.stringify(detailData.nodes || [])}\nConnections: ${JSON.stringify(detailData.connections || {})}`;
             }
           }
         }
       } catch (e) {
-        console.warn("[AI Chat MCP] Failed to fetch n8n workflow context:", e);
+        console.warn("[AI Chat] Failed to fetch target n8n workflow:", e);
       }
     }
 
-    // Attach current canvas state if present
+    // Attach current active canvas state if present
     if (canvasState && canvasState.nodes && canvasState.nodes.length > 0) {
       dynamicContext += `\n\n[Current Active Canvas State]:\nNodes: ${JSON.stringify(canvasState.nodes)}\nEdges: ${JSON.stringify(canvasState.edges || [])}`;
     }
@@ -148,7 +142,7 @@ export async function POST(request: Request) {
     }
     const endpoint = `${url}/chat/completions`;
 
-    // Clean up any error loop messages from conversation memory
+    // Filter out previous error loop messages
     const cleanedMessages = Array.isArray(messages) 
       ? messages.filter(m => !(m.role === 'assistant' && typeof m.content === 'string' && m.content.includes('Error:'))) 
       : [];
