@@ -55,6 +55,7 @@ export default function LandingPage() {
               <a href="#home" className="text-muted-foreground hover:text-foreground transition-colors">Home</a>
               <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
               <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
+              <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
             </div>
             <div className="flex items-center gap-4">
               <ThemeToggle />
