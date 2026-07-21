@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
+
 export async function POST(request: Request) {
   try {
     const { endpointUrl, apiToken } = await request.json();
@@ -16,7 +19,8 @@ export async function POST(request: Request) {
       headers: {
         'X-N8N-API-KEY': apiToken,
         'Accept': 'application/json'
-      }
+      },
+      cache: 'no-store'
     });
 
     if (response.ok) {

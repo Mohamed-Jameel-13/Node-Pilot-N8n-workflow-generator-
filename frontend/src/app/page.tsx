@@ -491,12 +491,12 @@ export default function LandingPage() {
                 >
                   {isLoggedIn ? "Go to Dashboard" : "Start for free"}
                 </Link>
-                <a 
-                  href="mailto:support@flowforge.app" 
-                  className="px-8 py-4 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md font-semibold text-lg transition-colors border border-border shadow-sm"
+                <Link 
+                  href="/contact" 
+                  className="px-8 py-4 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md font-semibold text-lg transition-colors border border-border shadow-sm flex items-center justify-center"
                 >
                   Contact Sales
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -512,6 +512,7 @@ export default function LandingPage() {
                   <li><a href="#features" className="hover:text-primary transition-colors">Features</a></li>
                   <li><a href="#pricing" className="hover:text-primary transition-colors">Pricing</a></li>
                   <li><Link href="/blog" className="hover:text-primary transition-colors">Blog</Link></li>
+                  <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
                 </ul>
               </div>
               <div>
