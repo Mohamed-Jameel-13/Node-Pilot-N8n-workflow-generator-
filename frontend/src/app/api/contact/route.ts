@@ -8,7 +8,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
 
-    const RESEND_API_KEY = process.env.RESEND_API_KEY || "re_8NcdNTpo_152oTk8cnmsH1AHDpUXsTU2j";
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
     if (!RESEND_API_KEY) {
       console.warn("Missing RESEND_API_KEY in environment variables.");
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         from: 'NodePilot Contact <onboarding@resend.dev>', // If using free Resend account without verified domain
-        to: 'smartjameel823@gmail.com', // Your target email
+        to: 'reelsstorehub@gmail.com', // Your target email
         subject: subject ? `NodePilot Contact: ${subject}` : `New message from ${name}`,
         html: `
           <h3>New Contact Form Submission</h3>
