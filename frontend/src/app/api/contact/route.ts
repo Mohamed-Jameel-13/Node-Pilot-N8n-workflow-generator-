@@ -8,15 +8,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
 
-    // TODO: Integrate with Email Provider (SendGrid, Resend, etc.) or Database (Supabase)
-    // The user will provide credentials later, so for now we simulate a successful submission.
-    
-    console.log("Contact Form Submission:", { name, email, subject, message });
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!RESEND_API_KEY) {
+      console.warn("Missing RESEND_API_KEY in environment variables.");
+      return NextResponse.json({ success: false, error: 'Email service is not configured (Missing API Key)' }, { status: 500 });
+    }
 
-    return NextResponse.json({ success: true, message: 'Message sent successfully.' });
+    // Send email using Resend HTTP API (Edge-compatible)
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'NodePilot Contact <onboarding@resend.dev>', // If using free Resend account without verified domain
+        to: 'smartjameel823@gmail.com', // Your target email
+        subject: subject ? `NodePilot Contact: ${subject}` : `New message from ${name}`,
+        html: `
+          <h3>New Contact Form Submission</h3>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Subject:</strong> ${subject || 'N/A'}</p>
+          <br/>
+          <p><strong>Message:</strong></p>
+          <p style="white-space: pre-wrap;">${message}</p>
+        `
+      })
+    });
+
+    if (response.ok) {
+      return NextResponse.json({ success: true, message: 'Message sent successfully.' });
+    } else {
+      const errorData = await response.json();
+      return NextResponse.json({ success: false, error: errorData.message || 'Failed to send email' }, { status: response.status });
+    }
   } catch (error: any) {
     console.error("Contact API Error:", error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });

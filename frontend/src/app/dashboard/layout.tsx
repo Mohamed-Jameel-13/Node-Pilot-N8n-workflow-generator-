@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useParams, useRouter } from "next/navigation";
-import { LayoutDashboard, Settings, CreditCard, Network, PenTool, Settings2, ArrowLeft, PanelLeftClose, PanelLeftOpen, History, Key, LogOut } from "lucide-react";
+import { LayoutDashboard, Settings, CreditCard, Network, PenTool, Settings2, ArrowLeft, PanelLeftClose, PanelLeftOpen, History, Key, LogOut, MessageSquare } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { supabase } from "@/lib/supabase";
 
@@ -25,6 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "API & Settings", href: "/dashboard/keys", icon: Key },
     { name: "Audit Trail", href: `/dashboard/default/audit`, icon: History },
     { name: "Pricing & Billing", href: "/dashboard/billing", icon: CreditCard },
+    { name: "Contact Us", href: "/contact", icon: MessageSquare },
   ];
 
   return (
