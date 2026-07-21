@@ -13,14 +13,13 @@ export async function POST(request: Request) {
 
     const url = endpointUrl.endsWith('/') ? endpointUrl.slice(0, -1) : endpointUrl;
     
-    // Ping the n8n workflows endpoint to test auth
-    const response = await fetch(`${url}/api/v1/workflows`, {
+    // Ping the n8n workflows endpoint to test auth with cache-busting query parameter
+    const response = await fetch(`${url}/api/v1/workflows?_t=${Date.now()}`, {
       method: 'GET',
       headers: {
         'X-N8N-API-KEY': apiToken,
         'Accept': 'application/json'
-      },
-      cache: 'no-store'
+      }
     });
 
     if (response.ok) {
