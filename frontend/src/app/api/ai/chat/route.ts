@@ -3,15 +3,14 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const runtime = 'edge';
 
-// System prompt instructing the AI model how to act as the n8n Orchestration Specialist
-const SYSTEM_PROMPT = `You are NodePilot, an AI-powered control plane assistant for n8n workflow automation.
+const BASE_SYSTEM_PROMPT = `You are NodePilot, an AI-powered control plane assistant for n8n workflow automation.
 You help users inspect, debug, create, and modify n8n workflows using natural language.
 
 When assisting users with workflow tasks:
 1. Be helpful, clear, and direct.
-2. If asked to inspect or fix a workflow, analyze the user's workflow goals, node configurations, and logic.
-3. Suggest concrete fixes, node additions, or parameter adjustments.
-4. When suggesting workflow structure changes, summarize the workflow steps clearly with node names and parameters.`;
+2. Analyze workflow structures, node configurations, parameter settings, and connection logic.
+3. Highlight any bugs, missing error handling, input validation gaps, or configuration issues.
+4. Provide concrete code snippets, parameters, and step-by-step fixes.`;
 
 export async function POST(request: Request) {
   try {
@@ -29,15 +28,76 @@ export async function POST(request: Request) {
       if (activeProvider.model) model = activeProvider.model;
     }
 
+    let dynamicContext = "";
+
+    // If n8n credentials are provided, attempt auto-fetching workflow details
+    if (n8nConfig && n8nConfig.endpointUrl && n8nConfig.apiToken) {
+      try {
+        const cleanUrl = n8nConfig.endpointUrl.endsWith('/') ? n8nConfig.endpointUrl.slice(0, -1) : n8nConfig.endpointUrl;
+        const listRes = await fetch(`${cleanUrl}/api/v1/workflows?limit=100`, {
+          headers: {
+            'X-N8N-API-KEY': n8nConfig.apiToken,
+            'Accept': 'application/json',
+            'User-Agent': 'NodePilot-ControlPlane/1.0'
+          }
+        });
+
+        if (listRes.ok) {
+          const listData = await listRes.json();
+          const workflows: any[] = listData.data || [];
+          
+          // Get the last user message text
+          const lastUserMsg = Array.isArray(messages) ? [...messages].reverse().find(m => m.role === 'user')?.content || "" : "";
+          
+          // Match workflow by name or ID if mentioned in user prompt
+          const matchedWf = workflows.find(w => 
+            lastUserMsg.toLowerCase().includes(w.name.toLowerCase()) || 
+            lastUserMsg.includes(w.id)
+          );
+
+          if (matchedWf) {
+            // Fetch complete workflow JSON details
+            const detailRes = await fetch(`${cleanUrl}/api/v1/workflows/${matchedWf.id}`, {
+              headers: {
+                'X-N8N-API-KEY': n8nConfig.apiToken,
+                'Accept': 'application/json',
+                'User-Agent': 'NodePilot-ControlPlane/1.0'
+              }
+            });
+            if (detailRes.ok) {
+              const detailData = await detailRes.json();
+              dynamicContext += `\n\n[Auto-Fetched n8n Workflow Context from User Instance]:\nName: ${detailData.name} (ID: ${detailData.id})\nActive Status: ${detailData.active ? "Active" : "Inactive"}\nNodes: ${JSON.stringify(detailData.nodes || [])}\nConnections: ${JSON.stringify(detailData.connections || {})}`;
+            }
+          } else if (workflows.length > 0) {
+            // Summary list of available workflows
+            const summaryList = workflows.map(w => `- ${w.name} (ID: ${w.id}, Active: ${w.active})`).join('\n');
+            dynamicContext += `\n\n[Connected n8n Instance Workflows Available]:\n${summaryList}`;
+          }
+        }
+      } catch (e) {
+        console.warn("[AI Chat] Failed to auto-fetch n8n workflow context:", e);
+      }
+    }
+
+    // Attach canvas nodes context if present
+    if (canvasState && canvasState.nodes && canvasState.nodes.length > 0) {
+      dynamicContext += `\n\n[Current Canvas Nodes]:\n${JSON.stringify(canvasState.nodes)}`;
+    }
+
     let url = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     if (!url.endsWith('/v1') && !url.includes('/api/v1') && !url.includes('openrouter.ai')) {
       url = `${url}/v1`;
     }
     const endpoint = `${url}/chat/completions`;
 
+    // Filter out previous error messages that cause repetition loops
+    const cleanedMessages = Array.isArray(messages) 
+      ? messages.filter(m => !(m.role === 'assistant' && typeof m.content === 'string' && m.content.includes('Error:'))) 
+      : [];
+
     const fullMessages = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...(Array.isArray(messages) ? messages : [])
+      { role: 'system', content: BASE_SYSTEM_PROMPT + dynamicContext },
+      ...cleanedMessages
     ];
 
     const response = await fetch(endpoint, {
