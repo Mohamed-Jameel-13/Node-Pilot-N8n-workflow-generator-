@@ -22,6 +22,7 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
   const [apiToken, setApiToken] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [n8nStatus, setN8nStatus] = useState<"idle" | "testing" | "connected" | "failed">("idle");
 
   // Load existing config from secure encrypted storage on mount
   useEffect(() => {
@@ -29,6 +30,9 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
     if (config) {
       setEndpointUrl(config.endpointUrl || "");
       setApiToken(config.apiToken || "");
+      if (config.endpointUrl && config.apiToken) {
+        setN8nStatus("connected");
+      }
     }
   }, [workspaceId]);
 
@@ -39,9 +43,25 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
     }
 
     setIsSaving(true);
+    setN8nStatus("testing");
     setMessage("");
 
     try {
+      const testRes = await fetch('/api/test-n8n', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpointUrl, apiToken })
+      });
+      
+      const testData = await testRes.json();
+      if (!testData.success) {
+         setN8nStatus("failed");
+         setMessage(testData.error || "Failed to connect to n8n instance. Check your URL and API Key.");
+         setIsSaving(false);
+         return; 
+      }
+      
+      setN8nStatus("connected");
       // SECURITY: Save to encrypted localStorage using AES encryption
       secureStorage.set(`n8n_config_${workspaceId}`, { endpointUrl, apiToken });
 
@@ -58,10 +78,10 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
         body: JSON.stringify({ endpointUrl, apiToken })
       });
 
-      setMessage("✅ Configuration saved! You can now deploy workflows to your n8n instance.");
+      setMessage("✅ Connection verified & configuration saved!");
     } catch (err) {
-      // Even if backend fails, localStorage save succeeded
-      setMessage("⚠️ Saved locally. Backend not reachable — credentials will be used from browser storage.");
+      setN8nStatus("failed");
+      setMessage("⚠️ Failed to verify n8n connection. Please check your credentials.");
     } finally {
       setIsSaving(false);
     }
@@ -99,7 +119,7 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
                 id="endpointUrl" 
                 placeholder="https://n8n.yourdomain.com" 
                 value={endpointUrl}
-                onChange={(e) => setEndpointUrl(e.target.value)}
+                onChange={(e) => { setEndpointUrl(e.target.value); setN8nStatus("idle"); }}
                 className="bg-background border-border/50 focus-visible:ring-primary/50 shadow-sm"
               />
               <p className="text-xs text-muted-foreground">
@@ -114,7 +134,7 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
                 type="password" 
                 placeholder="n8n_api_xxxxxxxxxxxxxxxxxxxx" 
                 value={apiToken}
-                onChange={(e) => setApiToken(e.target.value)}
+                onChange={(e) => { setApiToken(e.target.value); setN8nStatus("idle"); }}
                 className="bg-background border-border/50 focus-visible:ring-primary/50 shadow-sm"
                 autoComplete="new-password"
               />
@@ -138,10 +158,23 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
             >
               {isSaving ? "Saving..." : "Save Connection Details"}
             </Button>
-            {endpointUrl && (
-              <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-                ● Endpoint configured
-              </span>
+            {n8nStatus === "connected" && (
+              <div className="flex items-center text-sm text-emerald-500 font-medium bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+                Connected
+              </div>
+            )}
+            {n8nStatus === "failed" && (
+              <div className="flex items-center text-sm text-destructive font-medium bg-destructive/10 px-3 py-1 rounded-full border border-destructive/20">
+                <span className="w-2 h-2 rounded-full bg-destructive mr-2"></span>
+                Failed
+              </div>
+            )}
+            {n8nStatus === "testing" && (
+              <div className="flex items-center text-sm text-yellow-500 font-medium bg-yellow-500/10 px-3 py-1 rounded-full border border-yellow-500/20">
+                <span className="w-2 h-2 rounded-full bg-yellow-500 mr-2 animate-pulse"></span>
+                Testing
+              </div>
             )}
           </CardFooter>
         </Card>

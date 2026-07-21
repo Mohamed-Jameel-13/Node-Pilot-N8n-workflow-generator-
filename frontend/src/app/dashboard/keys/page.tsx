@@ -25,6 +25,7 @@ export default function ApiKeysAndSettingsPage() {
   const [endpointUrl, setEndpointUrl] = useState("");
   const [apiToken, setApiToken] = useState("");
   const [isSavingN8n, setIsSavingN8n] = useState(false);
+  const [n8nStatus, setN8nStatus] = useState<"idle" | "testing" | "connected" | "failed">("idle");
 
   // --- AI Config States ---
   const [providers, setProviders] = useState([{ baseUrl: "", apiKey: "", model: "" }]);
@@ -41,6 +42,9 @@ export default function ApiKeysAndSettingsPage() {
     if (n8nConfig) {
       setEndpointUrl(n8nConfig.endpointUrl || "");
       setApiToken(n8nConfig.apiToken || "");
+      if (n8nConfig.endpointUrl && n8nConfig.apiToken) {
+        setN8nStatus("connected");
+      }
     }
 
     // Load AI Provider Configurations & Subscription Status
@@ -100,9 +104,26 @@ export default function ApiKeysAndSettingsPage() {
     }
 
     setIsSavingN8n(true);
+    setN8nStatus("testing");
     setMessage("");
 
     try {
+      // Test the connection
+      const testRes = await fetch('/api/test-n8n', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpointUrl, apiToken })
+      });
+      
+      const testData = await testRes.json();
+      if (!testData.success) {
+         setN8nStatus("failed");
+         showMessage(testData.error || "Failed to connect to n8n instance. Check your URL and API Key.", "error");
+         setIsSavingN8n(false);
+         return; 
+      }
+      
+      setN8nStatus("connected");
       secureStorage.set("n8n_config_default", { endpointUrl, apiToken });
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -117,9 +138,10 @@ export default function ApiKeysAndSettingsPage() {
         body: JSON.stringify({ endpointUrl, apiToken })
       });
 
-      showMessage("✅ n8n connection configuration saved locally and synced!", "success");
+      showMessage("✅ n8n connection verified, saved locally and synced!", "success");
     } catch (err) {
-      showMessage("⚠️ Saved locally. Backend not reachable — credentials will be used from browser storage.", "info");
+      setN8nStatus("failed");
+      showMessage("⚠️ Failed to verify n8n connection. Please check your network.", "error");
     } finally {
       setIsSavingN8n(false);
     }
@@ -301,7 +323,7 @@ export default function ApiKeysAndSettingsPage() {
                     id="endpointUrl" 
                     placeholder="https://n8n.yourdomain.com" 
                     value={endpointUrl}
-                    onChange={(e) => setEndpointUrl(e.target.value)}
+                    onChange={(e) => { setEndpointUrl(e.target.value); setN8nStatus("idle"); }}
                     disabled={!isPro}
                     className="bg-background border-border/50 focus-visible:ring-primary/50"
                   />
@@ -317,7 +339,7 @@ export default function ApiKeysAndSettingsPage() {
                     type="password" 
                     placeholder="n8n_api_xxxxxxxxxxxxxxxxxxxx" 
                     value={apiToken}
-                    onChange={(e) => setApiToken(e.target.value)}
+                    onChange={(e) => { setApiToken(e.target.value); setN8nStatus("idle"); }}
                     disabled={!isPro}
                     className="bg-background border-border/50 focus-visible:ring-primary/50"
                     autoComplete="new-password"
@@ -335,9 +357,19 @@ export default function ApiKeysAndSettingsPage() {
                 >
                   {isSavingN8n ? "Saving..." : "Save Connection Details"}
                 </Button>
-                {endpointUrl && (
+                {n8nStatus === "connected" && (
                   <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20">
                     ● Connected
+                  </Badge>
+                )}
+                {n8nStatus === "failed" && (
+                  <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/20 border-destructive/20">
+                    ● Failed
+                  </Badge>
+                )}
+                {n8nStatus === "testing" && (
+                  <Badge className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 border-yellow-500/20">
+                    ● Testing
                   </Badge>
                 )}
               </CardFooter>
