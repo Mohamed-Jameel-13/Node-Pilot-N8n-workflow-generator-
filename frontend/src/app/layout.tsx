@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     canonical: "https://NodePilot.com",
   },
   verification: {
-    google: "your-google-verification-code",
+    google: "6cvl-ESf4pPTSdQRr-uOJmqSHugGLanSLNWLgn11Sgg",
     yandex: "your-yandex-verification-code",
   },
 };

@@ -8,7 +8,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
 
-    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    const RESEND_API_KEY = process.env.RESEND_API_KEY || "re_8NcdNTpo_152oTk8cnmsH1AHDpUXsTU2j";
 
     if (!RESEND_API_KEY) {
       console.warn("Missing RESEND_API_KEY in environment variables.");
