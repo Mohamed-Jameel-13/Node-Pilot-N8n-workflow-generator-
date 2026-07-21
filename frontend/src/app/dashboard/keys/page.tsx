@@ -68,19 +68,33 @@ export default function ApiKeysAndSettingsPage() {
           setIsLoadingStatus(false);
         }
         
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}/api/user/llm-config`, {
-          headers: { "Authorization": `Bearer ${session.access_token}` }
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          if (data.providers && data.providers.length > 0) {
-            setProviders(data.providers);
-            const initialCache: any = {};
-            data.providers.forEach((p: any, idx: number) => {
-              if (p.model) initialCache[idx] = [{ id: p.model }];
+        // Load local encrypted AI providers if present
+        const savedAiConfig = secureStorage.get("ai_providers_default");
+        if (savedAiConfig && Array.isArray(savedAiConfig) && savedAiConfig.length > 0) {
+          setProviders(savedAiConfig);
+          const initialCache: any = {};
+          savedAiConfig.forEach((p: any, idx: number) => {
+            if (p.model) initialCache[idx] = [{ id: p.model }];
+          });
+          setModelsCache(initialCache);
+        } else {
+          try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}/api/user/llm-config`, {
+              headers: { "Authorization": `Bearer ${session.access_token}` }
             });
-            setModelsCache(initialCache);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.providers && data.providers.length > 0) {
+                setProviders(data.providers);
+                const initialCache: any = {};
+                data.providers.forEach((p: any, idx: number) => {
+                  if (p.model) initialCache[idx] = [{ id: p.model }];
+                });
+                setModelsCache(initialCache);
+              }
+            }
+          } catch (e) {
+            // Ignore backend config fetch error if local storage is empty
           }
         }
       } catch (err) {
@@ -179,7 +193,7 @@ export default function ApiKeysAndSettingsPage() {
     setMessage("");
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}/api/llm/test`, {
+      const res = await fetch('/api/test-llm', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ baseUrl: provider.baseUrl, apiKey: provider.apiKey })
@@ -187,7 +201,7 @@ export default function ApiKeysAndSettingsPage() {
       
       const data = await res.json();
       
-      if (res.ok && data.data) {
+      if (res.ok && data.success && data.data) {
         setModelsCache({ ...modelsCache, [index]: data.data });
         showMessage(`Successfully fetched ${data.data.length} models for provider ${index + 1}.`, "success");
         if (data.data.length > 0 && !provider.model) {
@@ -198,7 +212,7 @@ export default function ApiKeysAndSettingsPage() {
         setModelsCache({ ...modelsCache, [index]: [] });
       }
     } catch (err) {
-      showMessage("Network error. Make sure the backend is running.", "error");
+      showMessage("Network error while testing LLM connection.", "error");
       setModelsCache({ ...modelsCache, [index]: [] });
     } finally {
       setIsFetchingModels({ ...isFetchingModels, [index]: false });
@@ -217,27 +231,30 @@ export default function ApiKeysAndSettingsPage() {
     setMessage("");
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      // SECURITY: Store credentials in client-side AES-encrypted local storage
+      secureStorage.set("ai_providers_default", providers);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}/api/user/llm-config`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ providers })
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok) {
-        showMessage(data.message || "AI Configurations saved successfully.", "success");
-      } else {
-        showMessage(data.error || "Failed to save configuration.", "error");
+      // Best-effort sync with backend if available
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        if (token) {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}/api/user/llm-config`, {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ providers })
+          });
+        }
+      } catch (backendErr) {
+        // Ignore backend unreachable error since local encrypted storage succeeded
       }
+
+      showMessage("✅ AI Configurations saved securely in encrypted storage!", "success");
     } catch (err) {
-      showMessage("Network error. Make sure the backend is running.", "error");
+      showMessage("Failed to save AI configuration.", "error");
     } finally {
       setIsSavingAi(false);
     }
