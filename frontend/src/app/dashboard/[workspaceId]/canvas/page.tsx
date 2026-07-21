@@ -19,6 +19,17 @@ import { jsonrepair } from "jsonrepair";
 
 type Message = { role: "user" | "assistant" | "system" | "tool"; content: string; tool_calls?: any; tool_call_id?: string; _id?: string };
 
+function fixMojibake(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(/â€”/g, '—')
+    .replace(/ðŸŸ¢/g, '🟢')
+    .replace(/âš«/g, '⚫')
+    .replace(/âœ…/g, '✅')
+    .replace(/âš ï§/g, '⚠️')
+    .replace(/ðŸš🚀/g, '🚀');
+}
+
 let _msgCounter = 0;
 const makeMsg = (m: Omit<Message, '_id'>): Message => ({ ...m, _id: `msg_${Date.now()}_${_msgCounter++}` });
 
@@ -1484,7 +1495,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                   .map((msg, idx) => (
                     <div key={(msg as any)._id || (msg as any).id || idx} className={`p-3 rounded-lg border shadow-sm ${msg.role === 'user' ? 'bg-primary text-primary-foreground border-primary/20 ml-4' : 'bg-card border-border/50 mr-4'} prose prose-sm max-w-none ${msg.role === 'user' ? 'prose-invert' : 'dark:prose-invert'}`}>
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {msg.content}
+                        {fixMojibake(msg.content)}
                       </ReactMarkdown>
                     </div>
                   ))
