@@ -452,8 +452,9 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
         console.log("[Agent Loop] Sending messages payload:", payloadMessages);
 
         const n8nConfig = secureStorage.get(`n8n_config_${workspaceId}`);
+        const aiProviders = secureStorage.get("ai_providers_default");
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}/api/ai/chat`, {
+        const res = await fetch("/api/ai/chat", {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
@@ -462,6 +463,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
           body: JSON.stringify({ 
             messages: payloadMessages,
             canvasState: { nodes: localNodes, edges: localEdges },
+            aiProviders: aiProviders || null,
             n8nConfig: n8nConfig ? { endpointUrl: n8nConfig.endpointUrl, apiToken: n8nConfig.apiToken } : null
           })
         });
