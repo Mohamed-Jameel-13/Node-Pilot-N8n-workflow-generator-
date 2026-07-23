@@ -1031,9 +1031,10 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
             setNodes([...localNodes]);
             setEdges([...localEdges]);
 
-            // Also show user what happened visually
+            // Also show user what happened visually — only for canvas-mutating actions
+            // (Not shown to user to keep chat clean; only logged internally)
             if (newSysMessages.length > 0) {
-               currentMessages = [...currentMessages, makeMsg({ role: "assistant", content: `[System]: ${newSysMessages.join(', ')}` })];
+              console.log('[Agent Loop] Tool actions:', newSysMessages.join(', '));
             }
 
             currentMessages = [...currentMessages, ...toolResponses];
@@ -1057,9 +1058,6 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
       console.log("[Agent Loop] Finished loop. Iterations completed:", iterations);
       if (iterations >= MAX_ITERATIONS) {
         currentMessages = [...currentMessages, makeMsg({ role: "assistant", content: "⚠️ Reached maximum action limit. If the task isn't complete, please send a follow-up message." })];
-        setMessages(currentMessages);
-      } else if (iterations > 1) {
-        currentMessages = [...currentMessages, makeMsg({ role: "assistant", content: "✅ **Task Complete!** I have finished configuring and setting up the workflow for you." })];
         setMessages(currentMessages);
       }
     } catch (err) {

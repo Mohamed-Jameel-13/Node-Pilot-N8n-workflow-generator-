@@ -6,31 +6,34 @@ export const runtime = 'edge';
 const BASE_SYSTEM_PROMPT = `You are NodePilot, an AI-powered control plane assistant for n8n workflow automation.
 
 OPERATIONAL RULES:
-1. Work ONLY on the specific workflow explicitly requested by the user in their prompt. Do not modify or bring in unrelated workflows.
-2. When the user asks to fix, create, optimize, or build the requested workflow:
-   - Call the "generate_workflow" function to construct or update the complete workflow structure directly on the visual canvas.
-3. Ensure every node has a unique ID, descriptive label (e.g. Webhook, Code, Filter, Google Sheets, Slack, OpenAI), and proper parameters.
-4. Ensure all nodes are connected sequentially in the "connections" array.
-5. Be concise, direct, and focused solely on the user's requested workflow.`;
+1. Work ONLY on the specific workflow explicitly requested by the user in their prompt.
+2. When the user asks to ANALYZE, REVIEW, or EXPLAIN a workflow — respond with a detailed text analysis. Do NOT call generate_workflow just to analyze.
+3. When the user asks to FIX, CREATE, OPTIMIZE, or BUILD a workflow:
+   - Call the "generate_workflow" function to construct or update the complete workflow structure on the visual canvas.
+   - Ensure every node has a unique ID, descriptive label (e.g. Webhook, Code, Filter, Google Sheets, Slack, OpenAI), and proper parameters.
+   - Ensure all nodes are connected sequentially in the "connections" array.
+4. When the user asks to VALIDATE a workflow — call the "validate_workflow" function.
+5. Be concise, direct, and focused solely on the user's requested workflow.
+6. After fixing a workflow, briefly summarize what you changed.`;
 
 const TOOLS = [
   {
     type: "function",
     function: {
       name: "generate_workflow",
-      description: "Generate or update the explicitly requested n8n workflow directly on the visual canvas with specified nodes and connections.",
+      description: "Generate or update an n8n workflow on the visual canvas. Call this when the user asks to create, fix, build, or update a workflow. NOT for analysis or explanation tasks.",
       parameters: {
         type: "object",
         properties: {
-          name: { type: "string", description: "Name of the requested workflow" },
+          name: { type: "string", description: "Name of the workflow" },
           nodes: {
             type: "array",
             items: {
               type: "object",
               properties: {
-                id: { type: "string" },
-                label: { type: "string", description: "Node type/label, e.g. Webhook, Code, Filter, Google Sheets, Slack, OpenAI" },
-                parameters: { type: "object", description: "Node configuration parameters" }
+                id: { type: "string", description: "Unique node ID, e.g. node1, webhook_trigger, code_filter" },
+                label: { type: "string", description: "Node type/label, e.g. Webhook Trigger, Code, Filter, Google Sheets, Slack, OpenAI, HTTP Request" },
+                parameters: { type: "object", description: "Node configuration parameters relevant to the node type" }
               },
               required: ["id", "label"]
             }
@@ -54,13 +57,61 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "validate_workflow",
+      description: "Validate the current canvas workflow for errors, disconnected nodes, and missing parameters.",
+      parameters: {
+        type: "object",
+        properties: {}
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
       name: "deploy_workflow_to_n8n",
       description: "Deploy the current canvas workflow directly to the connected n8n instance.",
       parameters: {
         type: "object",
         properties: {
-          workflowName: { type: "string" }
+          workflowName: { type: "string", description: "Name to deploy the workflow as" }
         }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_n8n_workflows",
+      description: "List all workflows in the connected n8n instance.",
+      parameters: { type: "object", properties: {} }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_n8n_workflow",
+      description: "Fetch and load a specific n8n workflow by ID onto the canvas.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "The n8n workflow ID" }
+        },
+        required: ["id"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "activate_n8n_workflow",
+      description: "Activate or deactivate an n8n workflow.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "The n8n workflow ID" },
+          active: { type: "boolean", description: "true to activate, false to deactivate" }
+        },
+        required: ["id", "active"]
       }
     }
   }
@@ -165,8 +216,8 @@ export async function POST(request: Request) {
         messages: fullMessages,
         tools: TOOLS,
         tool_choice: "auto",
-        temperature: 0.7,
-        max_tokens: 2500
+        temperature: 0.3,
+        max_tokens: 4000
       })
     });
 
