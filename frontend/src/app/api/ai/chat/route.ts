@@ -7,15 +7,12 @@ const BASE_SYSTEM_PROMPT = `You are NodePilot, an AI-powered control plane assis
 
 OPERATIONAL RULES:
 1. Work ONLY on the specific workflow explicitly requested by the user in their prompt.
-2. When the user asks to ANALYZE, REVIEW, or EXPLAIN a workflow — respond with a detailed text analysis based on the provided canvas state. Do NOT call generate_workflow just to analyze.
-3. When the user asks to FIX, CREATE, OPTIMIZE, or BUILD a workflow:
-   - Call the "generate_workflow" function to construct or update the complete workflow structure on the visual canvas.
-   - Ensure every node has a unique ID, descriptive label (e.g. Webhook, Code, Filter, Google Sheets, Slack, OpenAI), and proper parameters.
-   - Ensure all nodes are connected sequentially in the "connections" array.
-4. When the user asks to VALIDATE a workflow — call the "validate_workflow" function.
-5. NEVER ask the user to provide workflow JSON, nodes, connections, or configurations. You already have access to the full workflow details in the [Current Active Canvas State] context below, or you can use the get_n8n_workflow tool to fetch them. If the user asks you to modify or optimize, do it directly based on the context you have.
-6. Be concise, direct, and focused solely on the user's requested workflow.
-7. After fixing or optimizing a workflow, briefly summarize what you changed.`;
+2. When the user asks to ANALYZE, REVIEW, or EXPLAIN a workflow — respond with a detailed text analysis and call "review_workflow_architecture".
+3. When the user asks to CREATE a totally new workflow: call "create_new_workflow" or "generate_workflow".
+4. CRITICAL FOR PERFORMANCE: When the user asks to UPDATE, MODIFY, ADD, or DELETE nodes in an *existing* workflow, DO NOT regenerate the entire workflow. Instead, use the incremental CRUD tools: "add_node", "update_node", "delete_node", and "connect_nodes". Regenerating the whole workflow will cause timeouts!
+5. When the user asks to VALIDATE a workflow — call the "validate_workflow" function.
+6. NEVER ask the user to provide workflow JSON. You already have access to the full workflow details in the [Current Active Canvas State] context below.
+7. Be concise, direct, and focused solely on the user's requested workflow.`;
 
 const TOOLS = [
   {
@@ -52,6 +49,88 @@ const TOOLS = [
           }
         },
         required: ["name", "nodes", "connections"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_new_workflow",
+      description: "Clear the canvas and start a new workflow.",
+      parameters: { type: "object", properties: { name: { type: "string" } }, required: ["name"] }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "add_node",
+      description: "Add a single new node to the canvas.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "Unique node ID" },
+          label: { type: "string", description: "Node type/label" },
+          parameters: { type: "object", description: "Node configuration parameters" }
+        },
+        required: ["id", "label"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_node",
+      description: "Update an existing node's label or parameters.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "Node ID to update" },
+          label: { type: "string", description: "New node type/label" },
+          parameters: { type: "object", description: "New configuration parameters" }
+        },
+        required: ["id"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_node",
+      description: "Delete a node from the canvas by ID.",
+      parameters: {
+        type: "object",
+        properties: { id: { type: "string", description: "Node ID to delete" } },
+        required: ["id"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "connect_nodes",
+      description: "Create an edge/connection between two nodes.",
+      parameters: {
+        type: "object",
+        properties: {
+          source_id: { type: "string", description: "Source node ID" },
+          target_id: { type: "string", description: "Target node ID" }
+        },
+        required: ["source_id", "target_id"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "review_workflow_architecture",
+      description: "Review the workflow and provide a score and feedback.",
+      parameters: {
+        type: "object",
+        properties: {
+          score: { type: "number", description: "Score from 0 to 100" },
+          feedback: { type: "string", description: "Constructive feedback" }
+        },
+        required: ["score", "feedback"]
       }
     }
   },
