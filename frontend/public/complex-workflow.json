@@ -1,443 +1,49 @@
 {
-  "name": "Massive 40-Node Workflow",
+  "name": "AI-Powered Lead Nurturing & CRM Sync",
+  "description": "Captures leads from a webhook, enriches them via Clearbit, scores via OpenAI, routes by score tier, and syncs to HubSpot CRM with Slack notifications.",
   "nodes": [
-    {
-      "id": "node_1",
-      "label": "Webhook Trigger",
-      "parameters": {
-        "value": "Test 1"
-      }
-    },
-    {
-      "id": "node_2",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 2"
-      }
-    },
-    {
-      "id": "node_3",
-      "label": "OpenAI Node",
-      "parameters": {
-        "value": "Test 3"
-      }
-    },
-    {
-      "id": "node_4",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 4"
-      }
-    },
-    {
-      "id": "node_5",
-      "label": "Slack Node",
-      "parameters": {
-        "value": "Test 5"
-      }
-    },
-    {
-      "id": "node_6",
-      "label": "OpenAI Node",
-      "parameters": {
-        "value": "Test 6"
-      }
-    },
-    {
-      "id": "node_7",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 7"
-      }
-    },
-    {
-      "id": "node_8",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 8"
-      }
-    },
-    {
-      "id": "node_9",
-      "label": "OpenAI Node",
-      "parameters": {
-        "value": "Test 9"
-      }
-    },
-    {
-      "id": "node_10",
-      "label": "Slack Node",
-      "parameters": {
-        "value": "Test 10"
-      }
-    },
-    {
-      "id": "node_11",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 11"
-      }
-    },
-    {
-      "id": "node_12",
-      "label": "OpenAI Node",
-      "parameters": {
-        "value": "Test 12"
-      }
-    },
-    {
-      "id": "node_13",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 13"
-      }
-    },
-    {
-      "id": "node_14",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 14"
-      }
-    },
-    {
-      "id": "node_15",
-      "label": "Slack Node",
-      "parameters": {
-        "value": "Test 15"
-      }
-    },
-    {
-      "id": "node_16",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 16"
-      }
-    },
-    {
-      "id": "node_17",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 17"
-      }
-    },
-    {
-      "id": "node_18",
-      "label": "OpenAI Node",
-      "parameters": {
-        "value": "Test 18"
-      }
-    },
-    {
-      "id": "node_19",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 19"
-      }
-    },
-    {
-      "id": "node_20",
-      "label": "Slack Node",
-      "parameters": {
-        "value": "Test 20"
-      }
-    },
-    {
-      "id": "node_21",
-      "label": "OpenAI Node",
-      "parameters": {
-        "value": "Test 21"
-      }
-    },
-    {
-      "id": "node_22",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 22"
-      }
-    },
-    {
-      "id": "node_23",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 23"
-      }
-    },
-    {
-      "id": "node_24",
-      "label": "OpenAI Node",
-      "parameters": {
-        "value": "Test 24"
-      }
-    },
-    {
-      "id": "node_25",
-      "label": "Slack Node",
-      "parameters": {
-        "value": "Test 25"
-      }
-    },
-    {
-      "id": "node_26",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 26"
-      }
-    },
-    {
-      "id": "node_27",
-      "label": "OpenAI Node",
-      "parameters": {
-        "value": "Test 27"
-      }
-    },
-    {
-      "id": "node_28",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 28"
-      }
-    },
-    {
-      "id": "node_29",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 29"
-      }
-    },
-    {
-      "id": "node_30",
-      "label": "Slack Node",
-      "parameters": {
-        "value": "Test 30"
-      }
-    },
-    {
-      "id": "node_31",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 31"
-      }
-    },
-    {
-      "id": "node_32",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 32"
-      }
-    },
-    {
-      "id": "node_33",
-      "label": "OpenAI Node",
-      "parameters": {
-        "value": "Test 33"
-      }
-    },
-    {
-      "id": "node_34",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 34"
-      }
-    },
-    {
-      "id": "node_35",
-      "label": "Slack Node",
-      "parameters": {
-        "value": "Test 35"
-      }
-    },
-    {
-      "id": "node_36",
-      "label": "OpenAI Node",
-      "parameters": {
-        "value": "Test 36"
-      }
-    },
-    {
-      "id": "node_37",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 37"
-      }
-    },
-    {
-      "id": "node_38",
-      "label": "Code Node",
-      "parameters": {
-        "value": "Test 38"
-      }
-    },
-    {
-      "id": "node_39",
-      "label": "OpenAI Node",
-      "parameters": {
-        "value": "Test 39"
-      }
-    },
-    {
-      "id": "node_40",
-      "label": "Slack Node",
-      "parameters": {
-        "value": "Test 40"
-      }
-    }
+    { "id": "webhook_trigger", "label": "Webhook Trigger", "parameters": { "httpMethod": "POST", "path": "/lead-capture" } },
+    { "id": "validate_input", "label": "Code: Validate Input", "parameters": { "mode": "jsCode" } },
+    { "id": "check_duplicate", "label": "HTTP: Check HubSpot Duplicate", "parameters": { "url": "https://api.hubapi.com/crm/v3/objects/contacts/search", "method": "POST" } },
+    { "id": "if_duplicate", "label": "IF: Is Duplicate Contact?", "parameters": { "condition": "{{ $json.total > 0 }}" } },
+    { "id": "update_existing", "label": "HTTP: Update Existing HubSpot Contact", "parameters": { "method": "PATCH" } },
+    { "id": "enrich_with_clearbit", "label": "HTTP: Enrich Lead via Clearbit", "parameters": { "url": "https://person.clearbit.com/v2/combined/find", "method": "GET" } },
+    { "id": "openai_lead_score", "label": "OpenAI: AI Lead Scoring", "parameters": { "model": "gpt-4o", "systemPrompt": "You are a B2B lead scoring expert. Score leads 1-100 based on company size, industry, and job title. Return JSON: { score, reasoning, tier }" } },
+    { "id": "parse_score", "label": "Code: Parse AI Score Response", "parameters": { "mode": "jsCode" } },
+    { "id": "switch_by_tier", "label": "Switch: Route by Lead Tier (Hot/Warm/Cold)", "parameters": { "rules": [{ "value": "hot" }, { "value": "warm" }, { "value": "cold" }] } },
+    { "id": "hot_sequence_email", "label": "SendGrid: Send Hot Lead Email", "parameters": { "templateId": "d-hot-lead-template" } },
+    { "id": "hot_slack_alert", "label": "Slack: Alert Sales Team - Hot Lead", "parameters": { "channel": "#hot-leads" } },
+    { "id": "warm_sequence_email", "label": "SendGrid: Send Warm Lead Email", "parameters": { "templateId": "d-warm-lead-template" } },
+    { "id": "warm_add_drip", "label": "HTTP: Add to ConvertKit Drip Sequence", "parameters": { "url": "https://api.convertkit.com/v3/sequences/subscribe", "method": "POST" } },
+    { "id": "cold_sequence_email", "label": "SendGrid: Send Cold Lead Email", "parameters": { "templateId": "d-cold-lead-template" } },
+    { "id": "create_hubspot_contact", "label": "HTTP: Create HubSpot Contact", "parameters": { "url": "https://api.hubapi.com/crm/v3/objects/contacts", "method": "POST" } },
+    { "id": "create_hubspot_deal", "label": "HTTP: Create HubSpot Deal", "parameters": { "url": "https://api.hubapi.com/crm/v3/objects/deals", "method": "POST" } },
+    { "id": "associate_deal", "label": "HTTP: Associate Deal to Contact in HubSpot", "parameters": { "url": "https://api.hubapi.com/crm/v3/associations/contacts/deals/batch/create", "method": "POST" } },
+    { "id": "log_to_sheets", "label": "Google Sheets: Log Lead to CRM Sheet", "parameters": { "operation": "appendRow" } },
+    { "id": "send_confirm_email", "label": "SendGrid: Confirm Receipt to Lead", "parameters": { "templateId": "d-confirm-template" } },
+    { "id": "webhook_response", "label": "Respond to Webhook - Success", "parameters": { "statusCode": 200 } }
   ],
   "connections": [
-    {
-      "source": "node_1",
-      "target": "node_2"
-    },
-    {
-      "source": "node_2",
-      "target": "node_3"
-    },
-    {
-      "source": "node_3",
-      "target": "node_4"
-    },
-    {
-      "source": "node_4",
-      "target": "node_5"
-    },
-    {
-      "source": "node_5",
-      "target": "node_6"
-    },
-    {
-      "source": "node_6",
-      "target": "node_7"
-    },
-    {
-      "source": "node_7",
-      "target": "node_8"
-    },
-    {
-      "source": "node_8",
-      "target": "node_9"
-    },
-    {
-      "source": "node_9",
-      "target": "node_10"
-    },
-    {
-      "source": "node_10",
-      "target": "node_11"
-    },
-    {
-      "source": "node_11",
-      "target": "node_12"
-    },
-    {
-      "source": "node_12",
-      "target": "node_13"
-    },
-    {
-      "source": "node_13",
-      "target": "node_14"
-    },
-    {
-      "source": "node_14",
-      "target": "node_15"
-    },
-    {
-      "source": "node_15",
-      "target": "node_16"
-    },
-    {
-      "source": "node_16",
-      "target": "node_17"
-    },
-    {
-      "source": "node_17",
-      "target": "node_18"
-    },
-    {
-      "source": "node_18",
-      "target": "node_19"
-    },
-    {
-      "source": "node_19",
-      "target": "node_20"
-    },
-    {
-      "source": "node_20",
-      "target": "node_21"
-    },
-    {
-      "source": "node_21",
-      "target": "node_22"
-    },
-    {
-      "source": "node_22",
-      "target": "node_23"
-    },
-    {
-      "source": "node_23",
-      "target": "node_24"
-    },
-    {
-      "source": "node_24",
-      "target": "node_25"
-    },
-    {
-      "source": "node_25",
-      "target": "node_26"
-    },
-    {
-      "source": "node_26",
-      "target": "node_27"
-    },
-    {
-      "source": "node_27",
-      "target": "node_28"
-    },
-    {
-      "source": "node_28",
-      "target": "node_29"
-    },
-    {
-      "source": "node_29",
-      "target": "node_30"
-    },
-    {
-      "source": "node_30",
-      "target": "node_31"
-    },
-    {
-      "source": "node_31",
-      "target": "node_32"
-    },
-    {
-      "source": "node_32",
-      "target": "node_33"
-    },
-    {
-      "source": "node_33",
-      "target": "node_34"
-    },
-    {
-      "source": "node_34",
-      "target": "node_35"
-    },
-    {
-      "source": "node_35",
-      "target": "node_36"
-    },
-    {
-      "source": "node_36",
-      "target": "node_37"
-    },
-    {
-      "source": "node_37",
-      "target": "node_38"
-    },
-    {
-      "source": "node_38",
-      "target": "node_39"
-    },
-    {
-      "source": "node_39",
-      "target": "node_40"
-    }
+    { "source": "webhook_trigger", "target": "validate_input" },
+    { "source": "validate_input", "target": "check_duplicate" },
+    { "source": "check_duplicate", "target": "if_duplicate" },
+    { "source": "if_duplicate", "target": "update_existing" },
+    { "source": "if_duplicate", "target": "enrich_with_clearbit" },
+    { "source": "enrich_with_clearbit", "target": "openai_lead_score" },
+    { "source": "openai_lead_score", "target": "parse_score" },
+    { "source": "parse_score", "target": "switch_by_tier" },
+    { "source": "switch_by_tier", "target": "hot_sequence_email" },
+    { "source": "switch_by_tier", "target": "warm_sequence_email" },
+    { "source": "switch_by_tier", "target": "cold_sequence_email" },
+    { "source": "hot_sequence_email", "target": "hot_slack_alert" },
+    { "source": "hot_slack_alert", "target": "create_hubspot_contact" },
+    { "source": "warm_sequence_email", "target": "warm_add_drip" },
+    { "source": "warm_add_drip", "target": "create_hubspot_contact" },
+    { "source": "cold_sequence_email", "target": "create_hubspot_contact" },
+    { "source": "create_hubspot_contact", "target": "create_hubspot_deal" },
+    { "source": "create_hubspot_deal", "target": "associate_deal" },
+    { "source": "associate_deal", "target": "log_to_sheets" },
+    { "source": "log_to_sheets", "target": "send_confirm_email" },
+    { "source": "send_confirm_email", "target": "webhook_response" }
   ]
 }
