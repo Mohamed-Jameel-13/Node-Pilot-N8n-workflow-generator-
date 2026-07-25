@@ -447,7 +447,16 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
         console.log(`[Agent Loop] Starting iteration ${iterations}...`);
         
         // Only send user/assistant/tool messages, no system messages (backend handles system prompt)
-        const payloadMessages = currentMessages.filter((m: any) => m.role !== 'system');
+        // Also strip internal properties like _id to prevent strict providers (like Anthropic) from rejecting the payload
+        const payloadMessages = currentMessages
+          .filter((m: any) => m.role !== 'system')
+          .map((m: any) => {
+            const cleanMsg: any = { role: m.role };
+            if (m.content !== undefined) cleanMsg.content = m.content;
+            if (m.tool_calls !== undefined) cleanMsg.tool_calls = m.tool_calls;
+            if (m.tool_call_id !== undefined) cleanMsg.tool_call_id = m.tool_call_id;
+            return cleanMsg;
+          });
 
         console.log("[Agent Loop] Sending messages payload:", payloadMessages);
 
@@ -469,7 +478,13 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
         });
 
         console.log(`[Agent Loop] Iteration ${iterations} response status:`, res.status);
-        const data = await res.json();
+        let data;
+        try {
+          data = await res.json();
+        } catch (parseErr) {
+          console.warn("[Agent Loop] Failed to parse JSON response");
+          data = { error: `Invalid JSON response from server (HTTP ${res.status})` };
+        }
         
         if (!res.ok) {
           console.warn(`[Agent Loop] Iteration ${iterations} failed with non-200 status`);
@@ -1491,11 +1506,11 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                 </div>
               ) : (
                 messages
-                  .filter(msg => msg.role !== 'tool' && msg.role !== 'system')
+                  .filter(msg => msg.role !== 'tool' && msg.role !== 'system' && (msg.role !== 'assistant' || msg.content))
                   .map((msg, idx) => (
                     <div key={(msg as any)._id || (msg as any).id || idx} className={`p-3 rounded-lg border shadow-sm ${msg.role === 'user' ? 'bg-primary text-primary-foreground border-primary/20 ml-4' : 'bg-card border-border/50 mr-4'} prose prose-sm max-w-none ${msg.role === 'user' ? 'prose-invert' : 'dark:prose-invert'}`}>
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {fixMojibake(msg.content)}
+                        {fixMojibake(msg.content || "")}
                       </ReactMarkdown>
                     </div>
                   ))
