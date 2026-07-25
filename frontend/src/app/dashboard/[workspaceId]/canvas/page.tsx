@@ -568,6 +568,22 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                   resultMessage = `Workflow "${wfName}" generated with ${localNodes.length} nodes and ${localEdges.length} connections.`;
                   newSysMessages.push(`Generated complete workflow: ${wfName} (${localNodes.length} nodes, ${localEdges.length} connections)`);
                   
+                } else if (toolCall.function.name === "fetch_content_from_url") {
+                  try {
+                    const proxyUrl = `/api/tools/fetch-url?url=${encodeURIComponent(args.url)}`;
+                    const fetchRes = await fetch(proxyUrl);
+                    const fetchResult = await fetchRes.json();
+                    
+                    if (!fetchRes.ok) {
+                      resultMessage = `Error fetching URL: ${fetchResult.error}`;
+                      newSysMessages.push(`Failed to fetch URL: ${args.url}`);
+                    } else {
+                      resultMessage = `Successfully fetched content from ${args.url}:\n\n${typeof fetchResult.data === 'string' ? fetchResult.data : JSON.stringify(fetchResult.data)}`;
+                      newSysMessages.push(`Fetched content from URL: ${args.url}`);
+                    }
+                  } catch (e: any) {
+                    resultMessage = `Error executing fetch_content_from_url: ${e.message}`;
+                  }
                 } else if (toolCall.function.name === "add_node") {
                   const newNodeId = args.id || generateNodeId();
                   if (localNodes.some(n => n.id === newNodeId)) {
