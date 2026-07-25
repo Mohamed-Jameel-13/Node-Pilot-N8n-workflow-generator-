@@ -1,0 +1,443 @@
+{
+  "name": "Massive 40-Node Workflow",
+  "nodes": [
+    {
+      "id": "node_1",
+      "label": "Webhook Trigger",
+      "parameters": {
+        "value": "Test 1"
+      }
+    },
+    {
+      "id": "node_2",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 2"
+      }
+    },
+    {
+      "id": "node_3",
+      "label": "OpenAI Node",
+      "parameters": {
+        "value": "Test 3"
+      }
+    },
+    {
+      "id": "node_4",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 4"
+      }
+    },
+    {
+      "id": "node_5",
+      "label": "Slack Node",
+      "parameters": {
+        "value": "Test 5"
+      }
+    },
+    {
+      "id": "node_6",
+      "label": "OpenAI Node",
+      "parameters": {
+        "value": "Test 6"
+      }
+    },
+    {
+      "id": "node_7",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 7"
+      }
+    },
+    {
+      "id": "node_8",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 8"
+      }
+    },
+    {
+      "id": "node_9",
+      "label": "OpenAI Node",
+      "parameters": {
+        "value": "Test 9"
+      }
+    },
+    {
+      "id": "node_10",
+      "label": "Slack Node",
+      "parameters": {
+        "value": "Test 10"
+      }
+    },
+    {
+      "id": "node_11",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 11"
+      }
+    },
+    {
+      "id": "node_12",
+      "label": "OpenAI Node",
+      "parameters": {
+        "value": "Test 12"
+      }
+    },
+    {
+      "id": "node_13",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 13"
+      }
+    },
+    {
+      "id": "node_14",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 14"
+      }
+    },
+    {
+      "id": "node_15",
+      "label": "Slack Node",
+      "parameters": {
+        "value": "Test 15"
+      }
+    },
+    {
+      "id": "node_16",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 16"
+      }
+    },
+    {
+      "id": "node_17",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 17"
+      }
+    },
+    {
+      "id": "node_18",
+      "label": "OpenAI Node",
+      "parameters": {
+        "value": "Test 18"
+      }
+    },
+    {
+      "id": "node_19",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 19"
+      }
+    },
+    {
+      "id": "node_20",
+      "label": "Slack Node",
+      "parameters": {
+        "value": "Test 20"
+      }
+    },
+    {
+      "id": "node_21",
+      "label": "OpenAI Node",
+      "parameters": {
+        "value": "Test 21"
+      }
+    },
+    {
+      "id": "node_22",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 22"
+      }
+    },
+    {
+      "id": "node_23",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 23"
+      }
+    },
+    {
+      "id": "node_24",
+      "label": "OpenAI Node",
+      "parameters": {
+        "value": "Test 24"
+      }
+    },
+    {
+      "id": "node_25",
+      "label": "Slack Node",
+      "parameters": {
+        "value": "Test 25"
+      }
+    },
+    {
+      "id": "node_26",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 26"
+      }
+    },
+    {
+      "id": "node_27",
+      "label": "OpenAI Node",
+      "parameters": {
+        "value": "Test 27"
+      }
+    },
+    {
+      "id": "node_28",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 28"
+      }
+    },
+    {
+      "id": "node_29",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 29"
+      }
+    },
+    {
+      "id": "node_30",
+      "label": "Slack Node",
+      "parameters": {
+        "value": "Test 30"
+      }
+    },
+    {
+      "id": "node_31",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 31"
+      }
+    },
+    {
+      "id": "node_32",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 32"
+      }
+    },
+    {
+      "id": "node_33",
+      "label": "OpenAI Node",
+      "parameters": {
+        "value": "Test 33"
+      }
+    },
+    {
+      "id": "node_34",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 34"
+      }
+    },
+    {
+      "id": "node_35",
+      "label": "Slack Node",
+      "parameters": {
+        "value": "Test 35"
+      }
+    },
+    {
+      "id": "node_36",
+      "label": "OpenAI Node",
+      "parameters": {
+        "value": "Test 36"
+      }
+    },
+    {
+      "id": "node_37",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 37"
+      }
+    },
+    {
+      "id": "node_38",
+      "label": "Code Node",
+      "parameters": {
+        "value": "Test 38"
+      }
+    },
+    {
+      "id": "node_39",
+      "label": "OpenAI Node",
+      "parameters": {
+        "value": "Test 39"
+      }
+    },
+    {
+      "id": "node_40",
+      "label": "Slack Node",
+      "parameters": {
+        "value": "Test 40"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "source": "node_1",
+      "target": "node_2"
+    },
+    {
+      "source": "node_2",
+      "target": "node_3"
+    },
+    {
+      "source": "node_3",
+      "target": "node_4"
+    },
+    {
+      "source": "node_4",
+      "target": "node_5"
+    },
+    {
+      "source": "node_5",
+      "target": "node_6"
+    },
+    {
+      "source": "node_6",
+      "target": "node_7"
+    },
+    {
+      "source": "node_7",
+      "target": "node_8"
+    },
+    {
+      "source": "node_8",
+      "target": "node_9"
+    },
+    {
+      "source": "node_9",
+      "target": "node_10"
+    },
+    {
+      "source": "node_10",
+      "target": "node_11"
+    },
+    {
+      "source": "node_11",
+      "target": "node_12"
+    },
+    {
+      "source": "node_12",
+      "target": "node_13"
+    },
+    {
+      "source": "node_13",
+      "target": "node_14"
+    },
+    {
+      "source": "node_14",
+      "target": "node_15"
+    },
+    {
+      "source": "node_15",
+      "target": "node_16"
+    },
+    {
+      "source": "node_16",
+      "target": "node_17"
+    },
+    {
+      "source": "node_17",
+      "target": "node_18"
+    },
+    {
+      "source": "node_18",
+      "target": "node_19"
+    },
+    {
+      "source": "node_19",
+      "target": "node_20"
+    },
+    {
+      "source": "node_20",
+      "target": "node_21"
+    },
+    {
+      "source": "node_21",
+      "target": "node_22"
+    },
+    {
+      "source": "node_22",
+      "target": "node_23"
+    },
+    {
+      "source": "node_23",
+      "target": "node_24"
+    },
+    {
+      "source": "node_24",
+      "target": "node_25"
+    },
+    {
+      "source": "node_25",
+      "target": "node_26"
+    },
+    {
+      "source": "node_26",
+      "target": "node_27"
+    },
+    {
+      "source": "node_27",
+      "target": "node_28"
+    },
+    {
+      "source": "node_28",
+      "target": "node_29"
+    },
+    {
+      "source": "node_29",
+      "target": "node_30"
+    },
+    {
+      "source": "node_30",
+      "target": "node_31"
+    },
+    {
+      "source": "node_31",
+      "target": "node_32"
+    },
+    {
+      "source": "node_32",
+      "target": "node_33"
+    },
+    {
+      "source": "node_33",
+      "target": "node_34"
+    },
+    {
+      "source": "node_34",
+      "target": "node_35"
+    },
+    {
+      "source": "node_35",
+      "target": "node_36"
+    },
+    {
+      "source": "node_36",
+      "target": "node_37"
+    },
+    {
+      "source": "node_37",
+      "target": "node_38"
+    },
+    {
+      "source": "node_38",
+      "target": "node_39"
+    },
+    {
+      "source": "node_39",
+      "target": "node_40"
+    }
+  ]
+}
