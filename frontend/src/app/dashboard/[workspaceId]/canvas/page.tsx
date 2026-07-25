@@ -500,6 +500,13 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
           const choice = data.choices[0];
           const aiMessage = makeMsg(choice.message);
           
+          if (!aiMessage.content && (!aiMessage.tool_calls || aiMessage.tool_calls.length === 0)) {
+            console.warn("[Agent Loop] AI returned completely empty response.");
+            currentMessages = [...currentMessages, { role: "assistant", content: "⚠️ The AI returned an empty response or timed out internally. Please try again, or try breaking your request into smaller steps." }];
+            setMessages(currentMessages);
+            break;
+          }
+          
           currentMessages = [...currentMessages, aiMessage];
           setMessages(currentMessages);
           
@@ -1060,6 +1067,8 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
           }
         } else {
           console.log("[Agent Loop] No choices returned. Ending loop.");
+          currentMessages = [...currentMessages, { role: "assistant", content: "⚠️ The AI returned no choices. This might be due to a moderation filter or an API error. Please rephrase your request." }];
+          setMessages(currentMessages);
           isDone = true;
         }
       }

@@ -1153,6 +1153,16 @@ app.get('/api/billing/subscription-status', async (c) => {
       return c.json({ active: false });
     }
 
+    if (profile.subscription_id === 'sub_pro_manual') {
+      return c.json({
+        active: true,
+        status: 'active',
+        plan: profile.subscription_plan,
+        current_end: new Date(Date.now() + 31536000000).toISOString(),
+        cancel_at_period_end: false
+      });
+    }
+
     const rzp = razorpay;
 
     try {
