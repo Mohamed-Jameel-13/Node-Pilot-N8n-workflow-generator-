@@ -148,7 +148,8 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
   };
 
   useEffect(() => {
-    scrollToBottom();
+    const timeout = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeout);
   }, [messages, isTyping]);
 
   // Auto-resize textarea
@@ -578,8 +579,79 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                       resultMessage = `Error fetching URL: ${fetchResult.error}`;
                       newSysMessages.push(`Failed to fetch URL: ${args.url}`);
                     } else {
-                      resultMessage = `Successfully fetched content from ${args.url}:\n\n${typeof fetchResult.data === 'string' ? fetchResult.data : JSON.stringify(fetchResult.data)}`;
-                      newSysMessages.push(`Fetched content from URL: ${args.url}`);
+                      const dataStr = typeof fetchResult.data === 'string' ? fetchResult.data : JSON.stringify(fetchResult.data);
+                      try {
+                        const parsedData = typeof fetchResult.data === 'string' ? JSON.parse(fetchResult.data) : fetchResult.data;
+                        if (parsedData.nodes && Array.isArray(parsedData.nodes)) {
+                          setLoadedWorkflowId(parsedData.id || null);
+                          localLoadedWorkflowId = parsedData.id || null;
+                          setWorkflowName(parsedData.name || "Imported Workflow");
+                          
+                          localNodes = [];
+                          localEdges = [];
+                          
+                          parsedData.nodes.forEach((n: any, index: number) => {
+                            localNodes.push({
+                              id: n.id || generateNodeId(),
+                              position: { x: n.position?.[0] || 250 + (index % 4) * 300, y: n.position?.[1] || 100 + Math.floor(index / 4) * 200 },
+                              data: { 
+                                label: n.label || n.name, 
+                                originalId: n.id || n.name,
+                                parameters: n.parameters || {}
+                              },
+                              type: 'custom'
+                            });
+                          });
+
+                          if (parsedData.connections) {
+                            if (Array.isArray(parsedData.connections)) {
+                               parsedData.connections.forEach((conn: any, index: number) => {
+                                  localEdges.push({
+                                    id: `e-${conn.source}-${conn.target}-${index}`,
+                                    source: conn.source,
+                                    target: conn.target
+                                  });
+                               });
+                            } else {
+                              Object.keys(parsedData.connections).forEach(sourceName => {
+                                const sourceNode = localNodes.find(n => n.data.label === sourceName || n.data.originalId === sourceName || n.id === sourceName);
+                                if (sourceNode) {
+                                  const mainOutputs = parsedData.connections[sourceName].main || [];
+                                  mainOutputs.forEach((conns: any[], outputIdx: number) => {
+                                    (conns || []).forEach((c: any, connIdx: number) => {
+                                      const targetNode = localNodes.find(n => n.data.label === c.node || n.data.originalId === c.node || n.id === c.node);
+                                      if (targetNode) {
+                                        localEdges.push({
+                                          id: `e-${sourceNode.id}-${targetNode.id}-${outputIdx}-${connIdx}`,
+                                          source: sourceNode.id,
+                                          target: targetNode.id
+                                        });
+                                      }
+                                    });
+                                  });
+                                }
+                              });
+                            }
+                          }
+                          
+                          try {
+                            const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(localNodes, localEdges);
+                            localNodes = layoutedNodes;
+                            localEdges = layoutedEdges;
+                          } catch (layoutErr) {
+                            console.warn('[fetch_content_from_url] Auto-layout failed, using grid layout:', layoutErr);
+                          }
+
+                          resultMessage = `Successfully fetched and AUTO-IMPORTED workflow from ${args.url} with ${localNodes.length} nodes. Do NOT call generate_workflow. The canvas has been updated directly.`;
+                          newSysMessages.push(`Fetched and imported workflow from URL: ${args.url}`);
+                        } else {
+                           resultMessage = `Successfully fetched content from ${args.url}:\n\n${dataStr}`;
+                           newSysMessages.push(`Fetched content from URL: ${args.url}`);
+                        }
+                      } catch(e) {
+                         resultMessage = `Successfully fetched content from ${args.url}:\n\n${dataStr}`;
+                         newSysMessages.push(`Fetched content from URL: ${args.url}`);
+                      }
                     }
                   } catch (e: any) {
                     resultMessage = `Error executing fetch_content_from_url: ${e.message}`;

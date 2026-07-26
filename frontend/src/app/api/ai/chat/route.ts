@@ -12,8 +12,9 @@ OPERATIONAL RULES:
 4. CRITICAL FOR PERFORMANCE: When the user asks to UPDATE, MODIFY, ADD, or DELETE nodes in an *existing* workflow, DO NOT regenerate the entire workflow. Instead, use the incremental CRUD tools: "add_node", "update_node", "delete_node", and "connect_nodes". Regenerating the whole workflow will cause timeouts!
 5. When the user asks to VALIDATE a workflow — call the "validate_workflow" function.
 6. NEVER ask the user to provide workflow JSON. You already have access to the full workflow details in the [Current Active Canvas State] context below.
-7. If the user provides a LINK/URL to a workflow, you MUST use the "fetch_content_from_url" tool to fetch its raw contents first. Once fetched, read the JSON and use "generate_workflow" or CRUD tools to import it onto the canvas.
-8. Be concise, direct, and focused solely on the user's requested workflow.`;
+7. If the user provides a LINK/URL to a workflow, you MUST use the "fetch_content_from_url" tool to fetch its raw contents first.
+8. Be concise, direct, and focused solely on the user's requested workflow.
+9. PREVENT DEPLOYMENT FAILURES: When adding nodes (e.g., Google Sheets, HTTP Request, Slack), ALWAYS include placeholder parameters for required fields (e.g., "documentId": "YOUR_DOCUMENT_ID", "url": "https://example.com", "channel": "#general") to avoid missing parameter errors during deployment.`;
 
 const TOOLS = [
   {
