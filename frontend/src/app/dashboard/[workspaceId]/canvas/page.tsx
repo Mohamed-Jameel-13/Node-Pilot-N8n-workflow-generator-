@@ -256,6 +256,16 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
     setHistory({ index: 0, states: [{ nodes: DEFAULT_INITIAL_NODES, edges: DEFAULT_INITIAL_EDGES }] });
   };
 
+  const confirmNewChat = () => {
+    if (nodes.length > 1 || messages.length > 0) {
+      const confirmed = window.confirm(
+        "Starting a new chat will clear your current workflow and all chat messages. Are you sure?"
+      );
+      if (!confirmed) return;
+    }
+    startNewChat();
+  };
+
   const loadChatSession = (sessionId: string) => {
     const savedData = localStorage.getItem(`chat_data_${sessionId}`);
     if (savedData) {
@@ -864,13 +874,16 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                             localEdges = [];
                             
                             proxyData.data.nodes.forEach((n: any) => {
+                              // Preserve original node ID so connections resolve correctly
                               localNodes.push({
-                                id: generateNodeId(),
+                                id: n.id || generateNodeId(),
                                 position: { x: n.position?.[0] || 250, y: n.position?.[1] || 100 },
                                 data: { 
                                   label: n.name, 
                                   originalId: n.id || n.name,
-                                  parameters: n.parameters || {}
+                                  parameters: n.parameters || {},
+                                  nodeType: n.type || undefined,
+                                  typeVersion: n.typeVersion || undefined,
                                 },
                                 type: 'custom'
                               });
@@ -878,12 +891,13 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
 
                             if (proxyData.data.connections) {
                               Object.keys(proxyData.data.connections).forEach(sourceName => {
-                                const sourceNode = localNodes.find(n => n.data.label === sourceName);
+                                // Match by original ID first, then by label
+                                const sourceNode = localNodes.find(n => n.id === sourceName || n.data.originalId === sourceName || n.data.label === sourceName);
                                 if (sourceNode) {
                                   const mainOutputs = proxyData.data.connections[sourceName].main || [];
                                   mainOutputs.forEach((conns: any[], outputIdx: number) => {
                                     (conns || []).forEach((c: any, connIdx: number) => {
-                                      const targetNode = localNodes.find(n => n.data.label === c.node);
+                                      const targetNode = localNodes.find(n => n.id === c.node || n.data.originalId === c.node || n.data.label === c.node);
                                       if (targetNode) {
                                         localEdges.push({
                                           id: `e-${sourceNode.id}-${targetNode.id}-${outputIdx}-${connIdx}`,
@@ -1169,6 +1183,28 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
       setNodes([...finalNodes]);
       setEdges([...finalEdges]);
       pushToHistory(finalNodes, finalEdges);
+
+      // Issue Fix: If the last AI message has no text content but tool calls were made,
+      // inject a human-readable summary so the user knows what happened
+      const lastMsg = currentMessages[currentMessages.length - 1];
+      const hasTextContent = lastMsg && lastMsg.role === 'assistant' && typeof lastMsg.content === 'string' && lastMsg.content.trim().length > 0;
+      const allSysActions = currentMessages
+        .filter((m: any) => m._sysAction)
+        .map((m: any) => m._sysAction);
+      
+      // Build synthetic summary from tool responses in currentMessages
+      const toolResultMsgs = currentMessages.filter((m: any) => m.role === 'tool');
+      if (!hasTextContent && toolResultMsgs.length > 0) {
+        const nodeCount = finalNodes.length;
+        const edgeCount = finalEdges.length;
+        let summaryText = `✅ Done! I've updated your workflow canvas.\n\n`;
+        summaryText += `**Current state:** ${nodeCount} node${nodeCount !== 1 ? 's' : ''}, ${edgeCount} connection${edgeCount !== 1 ? 's' : ''}.`;
+        if (allSysActions.length > 0) {
+          summaryText += `\n\n**Actions performed:**\n` + allSysActions.map((a: string) => `• ${a}`).join('\n');
+        }
+        currentMessages = [...currentMessages, makeMsg({ role: 'assistant', content: summaryText })];
+        setMessages(currentMessages);
+      }
       
       console.log("[Agent Loop] Finished loop. Iterations completed:", iterations);
       if (iterations >= MAX_ITERATIONS) {
@@ -1270,6 +1306,10 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
           </div>
           <button 
             onClick={async () => {
+              if (nodes.length > 1 || messages.length > 0) {
+                const confirmed = window.confirm("This will clear the canvas. Are you sure?");
+                if (!confirmed) return;
+              }
               setNodes(DEFAULT_INITIAL_NODES);
               setEdges(DEFAULT_INITIAL_EDGES);
               setLoadedWorkflowId(null);
@@ -1536,7 +1576,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
               </button>
             </div>
             <button
-              onClick={startNewChat}
+              onClick={confirmNewChat}
               className="m-3 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded text-sm font-medium flex items-center justify-center gap-2 transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

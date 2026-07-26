@@ -14,7 +14,9 @@ OPERATIONAL RULES:
 6. NEVER ask the user to provide workflow JSON. You already have access to the full workflow details in the [Current Active Canvas State] context below.
 7. If the user provides a LINK/URL to a workflow, you MUST use the "fetch_content_from_url" tool to fetch its raw contents first.
 8. Be concise, direct, and focused solely on the user's requested workflow.
-9. PREVENT DEPLOYMENT FAILURES: When adding nodes (e.g., Google Sheets, HTTP Request, Slack), ALWAYS include placeholder parameters for required fields (e.g., "documentId": "YOUR_DOCUMENT_ID", "url": "https://example.com", "channel": "#general") to avoid missing parameter errors during deployment.`;
+9. PREVENT DEPLOYMENT FAILURES: When adding nodes (e.g., Google Sheets, HTTP Request, Slack), ALWAYS include placeholder parameters for required fields (e.g., "documentId": "YOUR_DOCUMENT_ID", "url": "https://example.com", "channel": "#general") to avoid missing parameter errors during deployment.
+10. AUTO-CONNECT RULE: After calling "add_node", you MUST ALWAYS immediately call "connect_nodes" to attach the new node to the workflow. Never leave a newly added node disconnected. If the user says "add X after Y", call add_node then connect_nodes(Y, X).
+11. ALWAYS REPLY WITH TEXT: After executing any tool calls, ALWAYS include a brief text summary of what you did. Never return a response with only tool calls and no text explanation. Example: "I've added a Discord node and connected it after the Slack node."`;
 
 const TOOLS = [
   {
