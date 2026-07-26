@@ -135,9 +135,14 @@ app.post('/api/workflows/:workspaceId/deploy', apiLimiter, async (c) => {
         (n.data.originalId && (en.id === n.data.originalId || en.name === n.data.originalId))
       );
       
-      // Preserve parameters from existing node, or use empty object for new nodes
+      // Preserve parameters: existing n8n node > canvas data.parameters > empty
       const nodeParams = existingNode?.parameters || n.data.parameters || {};
       
+      // Preserve type resolution order: existing n8n node type > canvas data.nodeType > label-resolved
+      const resolved = mapNodeTypeV2(n.data.label);
+      const finalNodeType = existingNode?.type || n.data.nodeType || resolved.nodeType;
+      const finalTypeVersion = existingNode?.typeVersion || n.data.typeVersion || resolved.typeVersion;
+
       let uniqueName = n.data.label;
       if (nameCounts[uniqueName]) {
         nameCounts[uniqueName] = nameCounts[uniqueName]! + 1;
@@ -147,19 +152,19 @@ app.post('/api/workflows/:workspaceId/deploy', apiLimiter, async (c) => {
       }
       n._uniqueName = uniqueName; // Save for connections block
       
-      const resolved = mapNodeTypeV2(n.data.label);
       return {
         parameters: nodeParams,
         id: n.data.originalId || n.id,
         name: uniqueName,
-        type: existingNode?.type || resolved.nodeType,
-        typeVersion: existingNode?.typeVersion || resolved.typeVersion,
+        type: finalNodeType,
+        typeVersion: finalTypeVersion,
         position: [
           Math.round(n.position?.x ?? index * 250),
           Math.round(n.position?.y ?? 100)
         ]
       };
     })
+
 
     const connections: any = {}
     edges.forEach((e: any) => {

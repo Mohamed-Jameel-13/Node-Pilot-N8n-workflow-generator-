@@ -333,6 +333,88 @@ export const nodeRegistry: Record<string, NodeSchema> = {
       return null;
     }
   },
+
+  // ── UI / Passthrough Nodes (no required params) ──────────────────────────
+  "sticky_note": {
+    nodeType: "n8n-nodes-base.stickyNote",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "no_op": {
+    nodeType: "n8n-nodes-base.noOp",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "html": {
+    nodeType: "n8n-nodes-base.html",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "html_extract": {
+    nodeType: "n8n-nodes-base.htmlExtract",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "date_time": {
+    nodeType: "n8n-nodes-base.dateTime",
+    typeVersion: 2,
+    requiredConfig: [],
+  },
+  "crypto": {
+    nodeType: "n8n-nodes-base.crypto",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "compression": {
+    nodeType: "n8n-nodes-base.compression",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "xml": {
+    nodeType: "n8n-nodes-base.xml",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "langchain_memory": {
+    nodeType: "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "langchain_chat_openai": {
+    nodeType: "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "langchain_chat_gemini": {
+    nodeType: "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "langchain_vector_store": {
+    nodeType: "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "langchain_embeddings": {
+    nodeType: "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "langchain_tool_calculator": {
+    nodeType: "@n8n/n8n-nodes-langchain.toolCalculator",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "langchain_document_loader": {
+    nodeType: "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
+  "langchain_text_splitter": {
+    nodeType: "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+    typeVersion: 1,
+    requiredConfig: [],
+  },
 };
 
 // ─── Credential Type Map ──────────────────────────────────────────────────────
@@ -488,8 +570,24 @@ export function validateWorkflow(
     nodeNames.add(nodeName);
 
     const paramsStr = JSON.stringify(parameters);
-    if (paramsStr === "{}" || paramsStr === '{"options":{}}') {
-      errors.push(`Node '${nodeName}': parameters are empty. All nodes must have complete configuration.`);
+    // Only flag empty parameters for nodes that are in the registry AND require config
+    // Skip passthrough/UI nodes (sticky notes, etc.) and unknown node types
+    const registryKeyEarly = Object.keys(nodeRegistry).find(key => {
+      const schema = nodeRegistry[key]!;
+      return schema.nodeType === nodeType || nodeName.toLowerCase().includes(key.replace(/_/g, ' '));
+    });
+    const schemaEarly = registryKeyEarly ? nodeRegistry[registryKeyEarly] : undefined;
+    const isPassthrough = schemaEarly ? schemaEarly.requiredConfig.length === 0 : false;
+    const isKnownNoParamType = nodeType && (
+      nodeType.includes('stickyNote') ||
+      nodeType.includes('noOp') ||
+      nodeType.includes('manualTrigger') ||
+      nodeType.includes('errorTrigger')
+    );
+    if (!isPassthrough && !isKnownNoParamType) {
+      if (paramsStr === "{}" || paramsStr === '{"options":{}}') {
+        errors.push(`Node '${nodeName}': parameters are empty. All nodes must have complete configuration.`);
+      }
     }
     if (paramsStr.includes('"placeholder"') || paramsStr.includes('"TODO"')) {
       errors.push(`Node '${nodeName}': contains placeholder/TODO values.`);
@@ -585,13 +683,16 @@ export function validateWorkflow(
 export function resolveNodeType(label: string): { nodeType: string; typeVersion: number } {
   const l = label.toLowerCase();
 
+  // First pass: exact or substring match against registry keys
   for (const [key, schema] of Object.entries(nodeRegistry)) {
     const keyWords = key.replace(/_/g, ' ');
-    if (l.includes(keyWords) || l === keyWords) {
+    if (l === keyWords || l.includes(keyWords)) {
       return { nodeType: schema.nodeType, typeVersion: schema.typeVersion };
     }
   }
 
+  // Second pass: explicit label patterns
+  if (l.includes('sticky') || l.includes('note')) return { nodeType: 'n8n-nodes-base.stickyNote', typeVersion: 1 };
   if (l.includes('webhook') && l.includes('respond')) return { nodeType: 'n8n-nodes-base.respondToWebhook', typeVersion: 1 };
   if (l.includes('webhook')) return { nodeType: 'n8n-nodes-base.webhook', typeVersion: 2 };
   if (l.includes('cron') || l.includes('schedule')) return { nodeType: 'n8n-nodes-base.scheduleTrigger', typeVersion: 1 };
@@ -604,12 +705,23 @@ export function resolveNodeType(label: string): { nodeType: string; typeVersion:
   if (l.includes('redis')) return { nodeType: 'n8n-nodes-base.redis', typeVersion: 1 };
   if (l.includes('notion')) return { nodeType: 'n8n-nodes-base.notion', typeVersion: 2 };
   if (l.includes('airtable')) return { nodeType: 'n8n-nodes-base.airtable', typeVersion: 2 };
-  if (l.includes('openai') || l.includes('gpt') || l.includes('llm')) return { nodeType: '@n8n/n8n-nodes-langchain.openAi', typeVersion: 1 };
-  if (l.includes('ai agent') || l.includes('agent')) return { nodeType: '@n8n/n8n-nodes-langchain.agent', typeVersion: 1 };
+  if (l.includes('whatsapp')) return { nodeType: 'n8n-nodes-base.whatsApp', typeVersion: 1 };
+  if (l.includes('telegram')) return { nodeType: 'n8n-nodes-base.telegram', typeVersion: 1 };
+  if (l.includes('discord')) return { nodeType: 'n8n-nodes-base.discord', typeVersion: 2 };
   if (l.includes('slack')) return { nodeType: 'n8n-nodes-base.slack', typeVersion: 2 };
   if (l.includes('gmail')) return { nodeType: 'n8n-nodes-base.gmail', typeVersion: 2 };
   if (l.includes('email') || l.includes('mail') || l.includes('smtp')) return { nodeType: 'n8n-nodes-base.emailSend', typeVersion: 2 };
-  if (l.includes('whatsapp')) return { nodeType: 'n8n-nodes-base.whatsApp', typeVersion: 1 };
+  if (l.includes('twilio')) return { nodeType: 'n8n-nodes-base.twilio', typeVersion: 1 };
+  if (l.includes('sendgrid')) return { nodeType: 'n8n-nodes-base.sendGrid', typeVersion: 1 };
+  if (l.includes('hubspot')) return { nodeType: 'n8n-nodes-base.hubspot', typeVersion: 2 };
+  if (l.includes('salesforce')) return { nodeType: 'n8n-nodes-base.salesforce', typeVersion: 1 };
+  if (l.includes('convertkit')) return { nodeType: 'n8n-nodes-base.convertKit', typeVersion: 1 };
+  if (l.includes('openai') || l.includes('gpt')) return { nodeType: '@n8n/n8n-nodes-langchain.openAi', typeVersion: 1 };
+  if (l.includes('gemini') || l.includes('google ai')) return { nodeType: '@n8n/n8n-nodes-langchain.lmChatGoogleGemini', typeVersion: 1 };
+  if (l.includes('claude') || l.includes('anthropic')) return { nodeType: '@n8n/n8n-nodes-langchain.lmChatAnthropic', typeVersion: 1 };
+  if (l.includes('ai agent') || l.includes('agent')) return { nodeType: '@n8n/n8n-nodes-langchain.agent', typeVersion: 1 };
+  if (l.includes('memory') || l.includes('buffer')) return { nodeType: '@n8n/n8n-nodes-langchain.memoryBufferWindow', typeVersion: 1 };
+  if (l.includes('vector') || l.includes('embedding')) return { nodeType: '@n8n/n8n-nodes-langchain.vectorStoreInMemory', typeVersion: 1 };
   if (l.includes('split') || l.includes('batch')) return { nodeType: 'n8n-nodes-base.splitInBatches', typeVersion: 3 };
   if (l.includes('merge')) return { nodeType: 'n8n-nodes-base.merge', typeVersion: 3 };
   if (l.includes('filter')) return { nodeType: 'n8n-nodes-base.filter', typeVersion: 1 };
@@ -625,7 +737,9 @@ export function resolveNodeType(label: string): { nodeType: string; typeVersion:
   if (l.includes('error') || l.includes('stop')) return { nodeType: 'n8n-nodes-base.stopAndError', typeVersion: 1 };
   if (l.includes('respond')) return { nodeType: 'n8n-nodes-base.respondToWebhook', typeVersion: 1 };
   if (l.includes('execute workflow') || l.includes('sub-workflow')) return { nodeType: 'n8n-nodes-base.executeWorkflow', typeVersion: 1 };
-  if (l.includes('manual') || l.includes('trigger')) return { nodeType: 'n8n-nodes-base.manualTrigger', typeVersion: 1 };
+  if (l.includes('manual') || l.includes('trigger') || l.includes('start')) return { nodeType: 'n8n-nodes-base.manualTrigger', typeVersion: 1 };
+  if (l.includes('no') && l.includes('op')) return { nodeType: 'n8n-nodes-base.noOp', typeVersion: 1 };
 
-  return { nodeType: 'n8n-nodes-base.httpRequest', typeVersion: 4 };
+  // Fallback: use noOp so unknown nodes don't fail validation with HTTP Request's required url/method check
+  return { nodeType: 'n8n-nodes-base.noOp', typeVersion: 1 };
 }

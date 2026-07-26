@@ -597,7 +597,10 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                               data: { 
                                 label: n.label || n.name, 
                                 originalId: n.id || n.name,
-                                parameters: n.parameters || {}
+                                parameters: n.parameters || {},
+                                // Preserve original n8n node type so deploy doesn't need to guess from label
+                                nodeType: n.type || undefined,
+                                typeVersion: n.typeVersion || undefined,
                               },
                               type: 'custom'
                             });
