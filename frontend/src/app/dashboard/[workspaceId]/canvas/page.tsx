@@ -340,9 +340,9 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
         let cleanError = data.error;
         try {
           const parsed = JSON.parse(data.error);
-          cleanError = parsed.errors.join('\\n- ');
+          cleanError = parsed.errors.join('\n- ');
         } catch (e) {
-          cleanError = data.error.split('SYSTEM ACTION REQUIRED')[0].trim();
+          cleanError = typeof data.error === 'string' ? data.error.split('SYSTEM ACTION REQUIRED')[0].trim() : String(data.error);
         }
         setMessages(prev => [...prev, { role: "assistant", content: `❌ Deployment Failed:\n- ${cleanError}\n\nYou can ask me to "fix the deployment errors" and I will automatically correct the parameters and connections!` }]);
       }
