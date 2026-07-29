@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Clock, Calendar, User, Tag, Shield, CheckCircle2, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
+import { supabase } from "@/lib/supabase";
 
 export const runtime = 'edge';
 
@@ -177,6 +178,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const post = postsData[resolvedParams.slug];
 
   if (!post) {
+    const { data: dbBlog } = await supabase.from('blogs').select('*').eq('slug', resolvedParams.slug).single();
+    
+    if (dbBlog) {
+      return {
+        title: `${dbBlog.title} | NodePilot Blog`,
+        description: dbBlog.excerpt,
+        keywords: ["Community", "Blog"],
+        openGraph: {
+          title: dbBlog.title,
+          description: dbBlog.excerpt,
+          type: "article",
+        },
+      };
+    }
+
     return {
       title: "Post Not Found – NodePilot",
     };
@@ -196,7 +212,32 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
-  const post = postsData[resolvedParams.slug];
+  const staticPost = postsData[resolvedParams.slug];
+
+  let post = null;
+  let isDynamic = false;
+  let dynamicBodyHtml = "";
+
+  if (staticPost) {
+    post = staticPost;
+  } else {
+    const { data: dbBlog } = await supabase.from('blogs').select('*').eq('slug', resolvedParams.slug).single();
+    if (dbBlog) {
+      isDynamic = true;
+      dynamicBodyHtml = dbBlog.body_html;
+      post = {
+        slug: dbBlog.slug,
+        title: dbBlog.title,
+        excerpt: dbBlog.excerpt || "",
+        category: "Community",
+        readTime: "5 min read",
+        author: "Community",
+        date: new Date(dbBlog.published_at || dbBlog.created_at).toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' }),
+        tags: ["Community"],
+        content: { intro: "", sections: [], conclusion: "" }
+      } as BlogPost;
+    }
+  }
 
   if (!post) {
     notFound();
@@ -240,27 +281,34 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </div>
 
         {/* Post Body */}
-        <article className="prose prose-invert max-w-none space-y-8 text-foreground/90 leading-relaxed text-base sm:text-lg">
-          <p className="text-lg font-medium leading-relaxed bg-muted/20 p-6 rounded-lg border border-border/40">
-            {post.content.intro}
-          </p>
+        {isDynamic ? (
+          <article 
+            className="prose prose-invert max-w-none space-y-8 text-foreground/90 leading-relaxed text-base sm:text-lg" 
+            dangerouslySetInnerHTML={{ __html: dynamicBodyHtml }} 
+          />
+        ) : (
+          <article className="prose prose-invert max-w-none space-y-8 text-foreground/90 leading-relaxed text-base sm:text-lg">
+            <p className="text-lg font-medium leading-relaxed bg-muted/20 p-6 rounded-lg border border-border/40">
+              {post.content.intro}
+            </p>
 
-          {post.content.sections.map((section, idx) => (
-            <div key={idx} className="space-y-4 pt-4">
-              <h2 className="text-2xl font-bold tracking-tight text-foreground border-b border-border/40 pb-2">
-                {section.title}
-              </h2>
-              <p className="text-muted-foreground leading-relaxed">
-                {section.body}
-              </p>
+            {post.content.sections.map((section, idx) => (
+              <div key={idx} className="space-y-4 pt-4">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground border-b border-border/40 pb-2">
+                  {section.title}
+                </h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  {section.body}
+                </p>
+              </div>
+            ))}
+
+            <div className="pt-6 border-t border-border/40">
+              <h3 className="text-xl font-bold mb-3">Conclusion</h3>
+              <p className="text-muted-foreground leading-relaxed">{post.content.conclusion}</p>
             </div>
-          ))}
-
-          <div className="pt-6 border-t border-border/40">
-            <h3 className="text-xl font-bold mb-3">Conclusion</h3>
-            <p className="text-muted-foreground leading-relaxed">{post.content.conclusion}</p>
-          </div>
-        </article>
+          </article>
+        )}
 
         {/* Tags */}
         <div className="mt-12 pt-6 border-t border-border/40 flex flex-wrap items-center gap-2">

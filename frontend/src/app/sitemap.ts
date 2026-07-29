@@ -1,10 +1,21 @@
 import { MetadataRoute } from 'next';
+import { supabase } from "@/lib/supabase";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nodepilot.io';
   const currentDate = new Date();
 
-  return [
+  // Fetch dynamic blogs
+  const { data: dbBlogs } = await supabase.from('blogs').select('slug, published_at');
+  
+  const dynamicBlogEntries: MetadataRoute.Sitemap = (dbBlogs || []).map(blog => ({
+    url: `${baseUrl}/blog/${blog.slug}`,
+    lastModified: blog.published_at ? new Date(blog.published_at) : currentDate,
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  }));
+
+  const staticEntries: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: currentDate,
@@ -126,4 +137,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
   ];
+
+  return [...staticEntries, ...dynamicBlogEntries];
 }

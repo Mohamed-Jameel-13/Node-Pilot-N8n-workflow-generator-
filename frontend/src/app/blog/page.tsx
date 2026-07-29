@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Clock, User, Tag } from "lucide-react";
 import type { Metadata } from "next";
+import { supabase } from "@/lib/supabase";
 
 export const metadata: Metadata = {
   title: "Blog – NodePilot | n8n Workflow Automation Tips & Guides",
@@ -90,9 +91,24 @@ const categoryColors: Record<string, string> = {
   Features: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
 };
 
-export default function BlogPage() {
-  const featured = posts.filter((p) => p.featured);
-  const rest = posts.filter((p) => !p.featured);
+export default async function BlogPage() {
+  const { data: dbBlogs } = await supabase.from('blogs').select('*').order('published_at', { ascending: false });
+
+  const mappedDbBlogs = (dbBlogs || []).map(b => ({
+    slug: b.slug,
+    title: b.title,
+    excerpt: b.excerpt || "",
+    category: "Community",
+    readTime: "5 min read",
+    author: "Community",
+    date: new Date(b.published_at || b.created_at).toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' }),
+    featured: false,
+    tags: ["Community"]
+  }));
+
+  const allPosts = [...posts, ...mappedDbBlogs];
+  const featured = allPosts.filter((p) => p.featured);
+  const rest = allPosts.filter((p) => !p.featured);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
