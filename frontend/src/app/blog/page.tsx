@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = "force-dynamic";
+
+
 const posts = [
   {
     slug: "self-host-n8n-complete-guide",
@@ -89,6 +92,7 @@ const categoryColors: Record<string, string> = {
   Security: "bg-red-500/10 text-red-600 dark:text-red-400",
   Tutorials: "bg-green-500/10 text-green-600 dark:text-green-400",
   Features: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  Community: "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400",
 };
 
 export default async function BlogPage() {
