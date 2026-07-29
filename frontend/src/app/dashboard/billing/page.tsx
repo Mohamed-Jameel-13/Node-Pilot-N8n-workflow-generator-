@@ -81,8 +81,8 @@ export default function BillingPage() {
       // 1. Request a new subscription from our backend
       const planType = isYearly ? "yearly" : "monthly";
       const finalAmount = currency === "INR" 
-        ? (isYearly ? 100 : 100) 
-        : (isYearly ? 3000 : 300);
+        ? (isYearly ? 359000 : 49900) 
+        : (isYearly ? 2200 : 300);
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://nodepilot-backend.nodepilot-app.workers.dev";
       const subRes = await fetch(`${apiUrl}/api/billing/create-subscription`, {
@@ -180,8 +180,8 @@ export default function BillingPage() {
     }
   };
 
-  const monthlyPrice = currency === "INR" ? "₹1" : "$3";
-  const yearlyPrice = currency === "INR" ? "₹1" : "$30";
+  const monthlyPrice = currency === "INR" ? "₹499" : "$3";
+  const yearlyPrice = currency === "INR" ? "₹3590" : "$22";
 
   if (isLoading) {
     return <div className="flex-1 p-8 flex items-center justify-center text-muted-foreground">Loading billing information...</div>;
@@ -266,8 +266,8 @@ export default function BillingPage() {
                 checked={isYearly} 
                 onCheckedChange={setIsYearly} 
               />
-              <Label htmlFor="billing-cycle" className={`text-sm ${isYearly ? 'font-bold' : 'text-muted-foreground'}`}>
-                Yearly <span className="text-green-500 text-xs ml-1">(Save 16%)</span>
+              <Label htmlFor="billing-cycle" className={`text-sm flex items-center ${isYearly ? 'font-bold' : 'text-muted-foreground'}`}>
+                Yearly <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs ml-2 font-bold animate-pulse shadow-sm">SAVE 40% 🔥</span>
               </Label>
             </div>
             
@@ -283,7 +283,12 @@ export default function BillingPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold">{isYearly ? yearlyPrice : monthlyPrice}</span>
+                  {isYearly && (
+                    <span className="text-2xl text-muted-foreground/60 line-through font-semibold mr-1">
+                      {currency === "INR" ? "₹5988" : "$36"}
+                    </span>
+                  )}
+                  <span className="text-4xl font-bold text-primary">{isYearly ? yearlyPrice : monthlyPrice}</span>
                   <span className="text-muted-foreground">/{isYearly ? "year" : "month"}</span>
                 </div>
                 <ul className="text-sm text-muted-foreground space-y-2">
