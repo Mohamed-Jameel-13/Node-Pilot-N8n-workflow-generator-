@@ -283,11 +283,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         {/* Post Body */}
         {isDynamic ? (
           <article 
-            className="prose prose-invert max-w-none space-y-8 text-foreground/90 leading-relaxed text-base sm:text-lg" 
+            className="prose dark:prose-invert max-w-none space-y-8 text-foreground/90 leading-relaxed text-base sm:text-lg" 
             dangerouslySetInnerHTML={{ __html: dynamicBodyHtml }} 
           />
         ) : (
-          <article className="prose prose-invert max-w-none space-y-8 text-foreground/90 leading-relaxed text-base sm:text-lg">
+          <article className="prose dark:prose-invert max-w-none space-y-8 text-foreground/90 leading-relaxed text-base sm:text-lg">
             <p className="text-lg font-medium leading-relaxed bg-muted/20 p-6 rounded-lg border border-border/40">
               {post.content.intro}
             </p>
