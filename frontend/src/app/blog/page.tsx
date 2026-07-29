@@ -95,8 +95,16 @@ const categoryColors: Record<string, string> = {
   Community: "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400",
 };
 
+import { createClient } from '@supabase/supabase-js';
+
 export default async function BlogPage() {
-  const { data: dbBlogs } = await supabase.from('blogs').select('*').order('published_at', { ascending: false });
+  // Use a server-side admin client to bypass RLS so public users can see the blogs
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data: dbBlogs } = await supabaseAdmin.from('blogs').select('*').order('published_at', { ascending: false });
 
   const mappedDbBlogs = (dbBlogs || []).map(b => ({
     slug: b.slug,
