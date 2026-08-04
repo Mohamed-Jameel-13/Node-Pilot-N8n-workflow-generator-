@@ -1,7 +1,25 @@
+"use client";
+
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function PricingPage() {
+  const [currency, setCurrency] = useState<"USD" | "INR">("USD");
+
+  useEffect(() => {
+    fetch("https://ipapi.co/json/")
+      .then(res => res.json())
+      .then(data => {
+        if (data.country_code === "IN") {
+          setCurrency("INR");
+        }
+      })
+      .catch(err => console.error("Error fetching location", err));
+  }, []);
+
+  const monthlyPrice = currency === "INR" ? "₹499" : "$3";
+
   return (
     <div className="min-h-screen bg-background text-foreground py-32 px-6">
       <div className="text-center mb-16">
@@ -55,7 +73,7 @@ export default function PricingPage() {
           <div className="mb-8">
             <div className="text-sm font-bold uppercase tracking-wider text-primary mb-2">PRO</div>
             <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-5xl font-bold">$29</span>
+              <span className="text-5xl font-bold">{monthlyPrice}</span>
               <span className="text-muted-foreground font-medium">/month</span>
             </div>
             <p className="text-muted-foreground mt-4">For teams running production n8n workflows at scale.</p>

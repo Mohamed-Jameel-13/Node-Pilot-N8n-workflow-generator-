@@ -35,8 +35,8 @@ export default function LandingPage() {
     };
   }, []);
 
-  const monthlyPrice = currency === "INR" ? "₹1" : "$3";
-  const yearlyPrice = currency === "INR" ? "₹1" : "$30";
+  const monthlyPrice = currency === "INR" ? "₹499" : "$3";
+  const yearlyPrice = currency === "INR" ? "₹3590" : "$22";
 
   return (
     <>
