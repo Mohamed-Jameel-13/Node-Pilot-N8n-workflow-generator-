@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { secureStorage } from "@/lib/secureStorage";
+import { getBackendApiUrl } from "@/lib/apiConfig";
 
 export default function WorkspaceSettingsPage({ params }: { params: Promise<{ workspaceId: string }> }) {
   const { workspaceId } = use(params);
@@ -69,7 +70,7 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workspaces/${workspaceId}/config`, {
+      await fetch(`${getBackendApiUrl()}/api/workspaces/${workspaceId}/config`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

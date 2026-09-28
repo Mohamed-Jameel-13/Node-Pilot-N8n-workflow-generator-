@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { secureStorage } from "@/lib/secureStorage";
+import { getBackendApiUrl } from "@/lib/apiConfig";
 import { Trash2, Plus, Key, Copy, Trash, Settings2, Sparkles, Sliders, Shield } from "lucide-react";
 
 export default function ApiKeysAndSettingsPage() {
@@ -55,7 +56,7 @@ export default function ApiKeysAndSettingsPage() {
         
         // Check subscription status
         try {
-          const subRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/billing/subscription-status`, {
+          const subRes = await fetch(`${getBackendApiUrl()}/api/billing/subscription-status`, {
             headers: { "Authorization": `Bearer ${session.access_token}` }
           });
           if (subRes.ok) {
@@ -79,7 +80,7 @@ export default function ApiKeysAndSettingsPage() {
           setModelsCache(initialCache);
         } else {
           try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/user/llm-config`, {
+            const res = await fetch(`${getBackendApiUrl()}/api/user/llm-config`, {
               headers: { "Authorization": `Bearer ${session.access_token}` }
             });
             if (res.ok) {
@@ -143,7 +144,7 @@ export default function ApiKeysAndSettingsPage() {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workspaces/default/config`, {
+      await fetch(`${getBackendApiUrl()}/api/workspaces/default/config`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -239,7 +240,7 @@ export default function ApiKeysAndSettingsPage() {
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
         if (token) {
-          await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/user/llm-config`, {
+          await fetch(`${getBackendApiUrl()}/api/user/llm-config`, {
             method: "POST",
             headers: { 
               "Content-Type": "application/json",

@@ -16,6 +16,7 @@ import { secureStorage } from "@/lib/secureStorage";
 import { useTheme } from "next-themes";
 import { getLayoutedElements } from "@/lib/layout";
 import { jsonrepair } from "jsonrepair";
+import { getBackendApiUrl } from "@/lib/apiConfig";
 
 type Message = { role: "user" | "assistant" | "system" | "tool"; content: string; tool_calls?: any; tool_call_id?: string; _id?: string };
 
@@ -162,7 +163,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) return;
         
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workflows/${workspaceId}/chat`, {
+        const res = await fetch(`${getBackendApiUrl()}/api/workflows/${workspaceId}/chat`, {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
         });
         
@@ -199,7 +200,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) return;
       
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workflows/${workspaceId}/chat`, {
+      await fetch(`${getBackendApiUrl()}/api/workflows/${workspaceId}/chat`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -309,7 +310,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workflows/${workspaceId}/deploy`, {
+      const res = await fetch(`${getBackendApiUrl()}/api/workflows/${workspaceId}/deploy`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -379,7 +380,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
         if (n8nConfigPre?.endpointUrl && n8nConfigPre?.apiToken && detectedId !== loadedWorkflowId) {
           console.log(`[Pre-fetch] Detected workflow ID: ${detectedId}. Auto-fetching...`);
           try {
-            const proxyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workflows/${workspaceId}/n8n-proxy`, {
+            const proxyRes = await fetch(`${getBackendApiUrl()}/api/workflows/${workspaceId}/n8n-proxy`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
               body: JSON.stringify({
@@ -765,7 +766,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                   if (!n8nConfig?.endpointUrl || !n8nConfig?.apiToken) {
                     resultMessage = "Error: Missing n8n credentials.";
                   } else {
-                    const deployRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workflows/${workspaceId}/deploy`, {
+                    const deployRes = await fetch(`${getBackendApiUrl()}/api/workflows/${workspaceId}/deploy`, {
                       method: "POST",
                       headers: { 
                         "Content-Type": "application/json",
@@ -820,7 +821,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                       newSysMessages.push(`Deleting workflow ${args.id}`);
                     }
 
-                    const proxyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workflows/${workspaceId}/n8n-proxy`, {
+                    const proxyRes = await fetch(`${getBackendApiUrl()}/api/workflows/${workspaceId}/n8n-proxy`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
@@ -922,7 +923,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                     const args = toolCall.function.arguments ? robustParseJSON(toolCall.function.arguments) : {};
                     const execution_mode = args.execution_mode || "production";
                     
-                    const proxyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workflows/${workspaceId}/n8n-proxy`, {
+                    const proxyRes = await fetch(`${getBackendApiUrl()}/api/workflows/${workspaceId}/n8n-proxy`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
@@ -960,7 +961,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                     const args = toolCall.function.arguments ? robustParseJSON(toolCall.function.arguments) : {};
                     const includeData = args.include_data || false;
                     
-                    const proxyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workflows/${workspaceId}/n8n-proxy`, {
+                    const proxyRes = await fetch(`${getBackendApiUrl()}/api/workflows/${workspaceId}/n8n-proxy`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
@@ -1001,7 +1002,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                     if (args.workflow_id) queryParams += `&workflowId=${args.workflow_id}`;
                     if (args.status) queryParams += `&status=${args.status}`;
                     
-                    const proxyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workflows/${workspaceId}/n8n-proxy`, {
+                    const proxyRes = await fetch(`${getBackendApiUrl()}/api/workflows/${workspaceId}/n8n-proxy`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
@@ -1103,7 +1104,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
                     let path = '/api/v1/credentials';
                     if (args.type) path += `?filter=${encodeURIComponent(JSON.stringify({ type: args.type }))}`;
                     
-                    const proxyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workflows/${workspaceId}/n8n-proxy`, {
+                    const proxyRes = await fetch(`${getBackendApiUrl()}/api/workflows/${workspaceId}/n8n-proxy`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
@@ -1313,7 +1314,7 @@ export default function CanvasPage({ params }: { params: Promise<{ workspaceId: 
               // Clear on backend too (silently)
               const { data: { session } } = await supabase.auth.getSession();
               if (session?.access_token) {
-                fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workflows/${workspaceId}/chat`, {
+                fetch(`${getBackendApiUrl()}/api/workflows/${workspaceId}/chat`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                   body: JSON.stringify({ messages: [], canvasState: { nodes: DEFAULT_INITIAL_NODES, edges: DEFAULT_INITIAL_EDGES } })
