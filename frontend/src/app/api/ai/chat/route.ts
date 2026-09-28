@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
+import { validateSafeUrl } from '@/lib/ssrf';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'edge';
@@ -217,18 +219,43 @@ const TOOLS = [
 
 export async function POST(request: Request) {
   try {
+    // 1. Enforce Authentication
+    const authHeader = request.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
+    if (authErr || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { messages, canvasState, aiProviders, n8nConfig } = await request.json();
 
     // Check if user has configured BYOK providers
-    let apiKey = process.env.OPENROUTER_API_KEY || "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";
+    const serverApiKey = process.env.OPENROUTER_API_KEY;
+    let apiKey = serverApiKey || "";
     let baseUrl = "https://openrouter.ai/api/v1";
     let model = "openrouter/auto";
 
     if (aiProviders && Array.isArray(aiProviders) && aiProviders.length > 0) {
       const activeProvider = aiProviders[0];
       if (activeProvider.apiKey) apiKey = activeProvider.apiKey;
-      if (activeProvider.baseUrl) baseUrl = activeProvider.baseUrl;
+      if (activeProvider.baseUrl) {
+        try {
+          const validatedBase = validateSafeUrl(activeProvider.baseUrl);
+          baseUrl = validatedBase.toString().replace(/\/+$/, '');
+        } catch (baseErr: any) {
+          return NextResponse.json({ error: `Invalid AI Provider URL: ${baseErr.message}` }, { status: 400 });
+        }
+      }
       if (activeProvider.model) model = activeProvider.model;
+    }
+
+    if (!apiKey) {
+      return NextResponse.json({ 
+        error: 'AI service unconfigured: Missing OPENROUTER_API_KEY and no BYOK provider key configured.' 
+      }, { status: 503 });
     }
 
     let dynamicContext = "";
@@ -236,7 +263,8 @@ export async function POST(request: Request) {
     // STRICT MATCH: Only fetch if the user explicitly asks for a specific workflow by name or ID
     if (n8nConfig && n8nConfig.endpointUrl && n8nConfig.apiToken) {
       try {
-        const cleanUrl = n8nConfig.endpointUrl.endsWith('/') ? n8nConfig.endpointUrl.slice(0, -1) : n8nConfig.endpointUrl;
+        const validatedN8nUrl = validateSafeUrl(n8nConfig.endpointUrl);
+        const cleanUrl = validatedN8nUrl.toString().replace(/\/+$/, '');
         const listRes = await fetch(`${cleanUrl}/api/v1/workflows?limit=100`, {
           headers: {
             'X-N8N-API-KEY': n8nConfig.apiToken,

@@ -1,10 +1,23 @@
 import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
+import { validateSafeUrl } from '@/lib/ssrf';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'edge';
 
 export async function GET(request: Request) {
   try {
+    // 1. Enforce Authentication
+    const authHeader = request.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
+    if (authErr || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const targetUrl = searchParams.get('url');
 
@@ -12,17 +25,25 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'URL parameter is required' }, { status: 400 });
     }
 
-    // Basic security: only allow http/https
-    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
-      return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
+    // 2. Validate URL against SSRF and private networks
+    let safeUrl: URL;
+    try {
+      safeUrl = validateSafeUrl(targetUrl);
+    } catch (urlErr: any) {
+      return NextResponse.json({ error: urlErr.message || 'Restricted URL' }, { status: 403 });
     }
 
-    const response = await fetch(targetUrl, {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
+    const response = await fetch(safeUrl.toString(), {
+      signal: controller.signal,
       headers: {
         'User-Agent': 'NodePilot-ControlPlane/1.0',
         'Accept': 'application/json, text/plain, */*'
       }
     });
+    clearTimeout(timeout);
 
     if (!response.ok) {
       return NextResponse.json(
@@ -37,7 +58,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ data, type: 'json' });
     } else {
       const text = await response.text();
-      return NextResponse.json({ data: text, type: 'text' });
+      return NextResponse.json({ data: text.slice(0, 500000), type: 'text' });
     }
   } catch (error: any) {
     return NextResponse.json(

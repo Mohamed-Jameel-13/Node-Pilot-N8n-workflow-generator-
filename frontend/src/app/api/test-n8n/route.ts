@@ -1,27 +1,49 @@
 import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
+import { validateSafeUrl } from '@/lib/ssrf';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'edge';
 
 export async function POST(request: Request) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
+    if (authErr || !user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { endpointUrl, apiToken } = await request.json();
 
     if (!endpointUrl || !apiToken) {
       return NextResponse.json({ success: false, error: 'Missing endpoint or token' }, { status: 400 });
     }
 
-    const url = endpointUrl.endsWith('/') ? endpointUrl.slice(0, -1) : endpointUrl;
-    
-    // Ping the n8n workflows endpoint with valid query param (limit=1) and User-Agent
+    let safeUrl: URL;
+    try {
+      safeUrl = validateSafeUrl(endpointUrl);
+    } catch (urlErr: any) {
+      return NextResponse.json({ success: false, error: urlErr.message || 'Restricted endpoint URL' }, { status: 403 });
+    }
+
+    const url = safeUrl.toString().replace(/\/+$/, '');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+
     const response = await fetch(`${url}/api/v1/workflows?limit=1`, {
       method: 'GET',
+      signal: controller.signal,
       headers: {
-        'X-N8N-API-KEY': apiToken,
+        'X-N8N-API-KEY': apiToken.trim(),
         'Accept': 'application/json',
         'User-Agent': 'NodePilot-ControlPlane/1.0'
       }
     });
+    clearTimeout(timeout);
 
     if (response.ok) {
       return NextResponse.json({ success: true });
@@ -41,6 +63,6 @@ export async function POST(request: Request) {
       }, { status: 200 });
     }
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Connection failed' }, { status: 500 });
   }
 }

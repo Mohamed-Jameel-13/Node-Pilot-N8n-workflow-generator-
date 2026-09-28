@@ -69,7 +69,7 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.nodepilot-app.workers.dev'}/api/workspaces/${workspaceId}/config`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://nodepilot-backend.jd2cvuk.workers.dev'}/api/workspaces/${workspaceId}/config`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

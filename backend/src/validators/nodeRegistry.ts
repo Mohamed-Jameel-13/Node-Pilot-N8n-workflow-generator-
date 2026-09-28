@@ -569,6 +569,16 @@ export function validateWorkflow(
     }
     nodeNames.add(nodeName);
 
+    // Security check: Block dangerous execution nodes
+    const FORBIDDEN_NODE_TYPES = [
+      'n8n-nodes-base.executeCommand',
+      'n8n-nodes-base.ssh',
+      'n8n-nodes-base.localFileAccess'
+    ];
+    if (nodeType && FORBIDDEN_NODE_TYPES.includes(nodeType)) {
+      errors.push(`Node '${nodeName}': Node type '${nodeType}' is strictly prohibited for security reasons.`);
+    }
+
     const paramsStr = JSON.stringify(parameters);
     // Only flag empty parameters for nodes that are in the registry AND require config
     // Skip passthrough/UI nodes (sticky notes, etc.) and unknown node types

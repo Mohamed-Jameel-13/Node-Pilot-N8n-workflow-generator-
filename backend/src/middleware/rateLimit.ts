@@ -3,18 +3,10 @@
  * Protects API endpoints from abuse and DoS attacks
  */
 
-interface RateLimitStore {
-  [key: string]: {
-    count: number;
-    resetTime: number;
-  };
+interface ClientRecord {
+  count: number;
+  resetTime: number;
 }
-
-const store: RateLimitStore = {};
-
-// Note: Global setInterval cleanup removed for Cloudflare Workers compatibility.
-// In serverless environments, isolates are short-lived, so memory leaks in `store` 
-// are automatically handled when the isolate spins down.
 
 export interface RateLimitOptions {
   windowMs: number;  // Time window in milliseconds
@@ -23,57 +15,55 @@ export interface RateLimitOptions {
 }
 
 /**
- * Creates a rate limit middleware
+ * Creates a memory-bounded rate limit middleware with FIFO eviction
  * @param options Configuration for rate limiting
  */
 export function createRateLimiter(options: RateLimitOptions) {
   const { windowMs, max, message = 'Too many requests, please try again later' } = options;
+  const store = new Map<string, ClientRecord>();
+  const MAX_ENTRIES = 10000;
 
   return async (c: any, next: any) => {
-    // RATE LIMITING TEMPORARILY DISABLED BY USER REQUEST
-    return next();
-    
-    // Get identifier (prefer user ID, fallback to IP)
+    // Get identifier (prefer user token/id, fallback to IP)
     const authHeader = c.req.header('Authorization');
     const token = authHeader?.split(' ')[1];
-    
-    let identifier = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
-    
-    // If authenticated, use user as identifier for better tracking
+    const ip = c.req.header('x-forwarded-for')?.split(',')[0].trim() || c.req.header('x-real-ip') || 'unknown';
+
+    let identifier = `ip_${ip}`;
     if (token) {
-      try {
-        const { supabaseAdmin } = await import('../utils/supabase.js');
-        const { data } = await supabaseAdmin.auth.getUser(token);
-        const userId = data?.user?.id;
-        if (userId) {
-          identifier = `user_${userId}`;
-        }
-      } catch (err) {
-        // Fall back to IP if auth check fails
-      }
+      // Use token suffix or hash to avoid async overhead on every request
+      identifier = `tok_${token.slice(-16)}`;
     }
 
-    const key = `${c.req.path}_${identifier}`;
+    const key = `${c.req.path}:${identifier}`;
     const now = Date.now();
 
-    // Initialize or get existing record
-    if (!store[key] || store[key]!.resetTime < now) {
-      store[key] = {
+    let record = store.get(key);
+
+    // Initialize or reset if window has passed
+    if (!record || record.resetTime < now) {
+      if (store.size >= MAX_ENTRIES) {
+        // Evict oldest entry to prevent memory exhaustion
+        const oldestKey = store.keys().next().value;
+        if (oldestKey) store.delete(oldestKey);
+      }
+      store.set(key, {
         count: 1,
         resetTime: now + windowMs
-      };
+      });
       return next();
     }
 
     // Increment counter
-    store[key]!.count++;
+    record.count++;
 
     // Check if limit exceeded
-    if (store[key]!.count > max) {
-      const resetIn = Math.ceil((store[key]!.resetTime - now) / 1000);
+    if (record.count > max) {
+      const resetInSeconds = Math.ceil((record.resetTime - now) / 1000);
+      c.header('Retry-After', String(resetInSeconds));
       return c.json({
         error: message,
-        retryAfter: resetIn
+        retryAfter: resetInSeconds
       }, 429);
     }
 
@@ -95,7 +85,7 @@ export const aiChatLimiter = createRateLimiter({
 
 /**
  * Standard rate limiter for API endpoints
- * 100 requests per 15 minutes
+ * 100 requests per 15 minutes  
  */
 export const apiLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
